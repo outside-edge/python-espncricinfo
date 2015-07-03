@@ -1,5 +1,4 @@
 import requests
-import six
 
 class Match(object):
 
