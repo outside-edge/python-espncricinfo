@@ -1,6 +1,4 @@
 import requests
-import urlparse
-from .json_import import simplejson
 import six
 
 class Match(object):
