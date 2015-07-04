@@ -23,6 +23,14 @@ pip install python-espncricinfo
 u'England [Marylebone Cricket Club] tour of Australia, Only ODI: Australia v England at Melbourne, Jan 5, 1971'
 ```
 
+### Tests
+
+To run the tests:
+
+```shell
+python tests.py
+```
+
 ### Requires
 
   * requests
