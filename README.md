@@ -1,6 +1,6 @@
 # python-espncricinfo
 
-A Python client for ESPNCricInfo's Match API
+A Python client for ESPNCricInfo's match and summary JSON.
 
 ### Description
 
@@ -15,6 +15,17 @@ pip install python-espncricinfo
 ```
 
 ### Usage
+
+For a summary of live matches, create an instance of the `Summary` class:
+
+```python
+>>> from espncricinfo.summary import Summary
+>>> s = Summary()
+>>> s.match_ids
+[u'68079', u'68209', u'68081', u'61375', u'65429']
+```
+
+For individual matches, pass in the numeric ID as an integer or a string:
 
 ```python
 >>> from espncricinfo.match import Match
