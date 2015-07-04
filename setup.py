@@ -2,10 +2,10 @@
 from setuptools import setup, find_packages
 
 setup(name="python-espncricinfo",
-      version="0.1",
+      version="0.1.0",
       description="ESPNCricInfo API client",
       license="MIT",
-      install_requires=["simplejson","requests","six"],
+      install_requires=["requests"],
       author="Derek Willis",
       author_email="dwillis@gmail.com",
       url="http://github.com/dwillis/python-espncricinfo",
