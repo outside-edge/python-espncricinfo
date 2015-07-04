@@ -10,5 +10,6 @@ setup(name="python-espncricinfo",
       author_email="dwillis@gmail.com",
       url="http://github.com/dwillis/python-espncricinfo",
       packages = find_packages(),
-      keywords= "espncricinfo",
+      keywords= "espncricinfo cricket t20 odi",
+      classifiers=['Development Status :: 4 - Beta']
       zip_safe = True)
