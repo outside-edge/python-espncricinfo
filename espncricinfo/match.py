@@ -140,9 +140,9 @@ class Match(object):
 
     def toss_winner(self):
         if self.team_1_id() == self.match_json()['toss_winner_team_id']:
-            return self.team_1_abbreviation()
+            return self.team_1_id()
         else:
-            return self.team_2_abbreviation()
+            return self.team_2_id()
 
     def toss_decision(self):
         return self.match_json()['toss_decision_name']
