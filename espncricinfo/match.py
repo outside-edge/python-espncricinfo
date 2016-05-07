@@ -72,6 +72,9 @@ class Match(object):
     def scheduled_overs(self):
         return int(self.match_json()['scheduled_overs'])
 
+    def innings(self):
+        return self.json['innings']
+
     def team_1(self):
         return self.json['team'][0]
 
