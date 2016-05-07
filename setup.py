@@ -2,7 +2,7 @@
 from setuptools import setup, find_packages
 
 setup(name="python-espncricinfo",
-      version="0.2.2",
+      version="0.2.3",
       description="ESPNCricInfo API client",
       license="MIT",
       install_requires=["requests"],
