@@ -42,6 +42,23 @@ class Match(object):
     def officials(self):
         return self.json['official']
 
+    # live matches only
+    def current_summary(self):
+        if self.match_json().has_key('current_summary'):
+            return self.match_json()['current_summary']
+
+    def present_datetime_local(self):
+        return self.match_json()['present_datetime_local']
+
+    def present_datetime_gmt(self):
+        return self.match_json()['present_datetime_gmt']
+
+    def start_datetime_local(self):
+        return self.match_json()['start_datetime_local']
+
+    def start_datetime_gmt(self):
+        return self.match_json()['start_datetime_gmt']
+
     def cancelled_match(self):
         if self.match_json()['cancelled_match'] == 'N':
             return False
@@ -60,6 +77,18 @@ class Match(object):
     def continent(self):
         return self.match_json()['continent_name']
 
+    def town_area(self):
+        return self.match_json()['town_area']
+
+    def town_name(self):
+        return self.match_json()['town_name']
+
+    def town_id(self):
+        return self.match_json()['town_id']
+
+    def weather_location_code(self):
+        return self.match_json()['weather_location_code']
+
     def match_title(self):
         return self.match_json()['cms_match_title']
 
@@ -75,11 +104,35 @@ class Match(object):
     def lighting(self):
         return self.match_json()['floodlit_name']
 
+    def followon(self):
+        if self.match_json()['followon'] == '1':
+            return True
+        else:
+            return False
+
     def scheduled_overs(self):
         return int(self.match_json()['scheduled_overs'])
 
+    def innings_list(self):
+        return self.json['centre']['common']['innings_list']
+
     def innings(self):
         return self.json['innings']
+
+    def latest_batting(self):
+        return self.json['centre']['common']['batting']
+
+    def latest_bowling(self):
+        return self.json['centre']['common']['bowling']
+
+    def latest_innings(self):
+        return self.json['centre']['common']['innings']
+
+    def latest_innings_fow(self):
+        if self.json['centre'].has_key('fow'):
+            return self.json['centre']['fow']
+        else:
+            return None
 
     def team_1(self):
         return self.json['team'][0]
