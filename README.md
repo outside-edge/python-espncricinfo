@@ -25,11 +25,11 @@ For a summary of live matches, create an instance of the `Summary` class:
 [u'68079', u'68209', u'68081', u'61375', u'65429']
 ```
 
-For individual matches, pass in the numeric ID as an integer or a string:
+For individual matches, pass in the ID as a string:
 
 ```python
 >>> from espncricinfo.match import Match
->>> m = Match(64148)
+>>> m = Match('64148')
 >>> m.description()
 u'England [Marylebone Cricket Club] tour of Australia, Only ODI: Australia v England at Melbourne, Jan 5, 1971'
 ```
@@ -44,4 +44,4 @@ python tests.py
 
 ### Requires
 
-  * requests
+See requirements.txt
