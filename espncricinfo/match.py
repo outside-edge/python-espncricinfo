@@ -1,16 +1,22 @@
 import requests
+from espncricinfo.exceptions import NoMatchFoundError
 
 class Match(object):
 
     def __init__(self, match_id):
+        self.match_id = match_id
         self.match_url = "http://www.espncricinfo.com/matches/engine/match/{0}.html".format(str(match_id))
         self.json_url = "http://www.espncricinfo.com/matches/engine/match/{0}.json".format(str(match_id))
         self.json = self.get_json()
-        self.__unicode__ = self.description()
+        if self.json:
+            self.__unicode__ = self.description()
 
     def get_json(self):
         r = requests.get(self.json_url)
-        return r.json()
+        if r.status_code == 404:
+            raise NoMatchFoundError
+        else:
+            return r.json()
 
     def match_json(self):
         return self.json['match']
