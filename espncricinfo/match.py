@@ -10,6 +10,59 @@ class Match(object):
         self.json = self.get_json()
         if self.json:
             self.__unicode__ = self.description()
+            self.status = self._status()
+            self.match_class = self._match_class()
+            self.season = self._season()
+            self.description = self._description()
+            self.series = self._series()
+            self.officials = self._officials()
+            self.current_summary = self._current_summary()
+            self.present_datetime_local = self._present_datetime_local()
+            self.present_datetime_gmt = self._present_datetime_gmt()
+            self.start_datetime_local = self._start_datetime_local()
+            self.start_datetime_gmt = self._start_datetime_gmt()
+            self.cancelled_match = self._cancelled_match()
+            self.rain_rule = self._rain_rule()
+            self.date = self._date()
+            self.continent = self._continent()
+            self.town_area = self._town_area()
+            self.town_name = self._town_name()
+            self.town_id = self._town_id()
+            self.weather_location_code = self._weather_location_code()
+            self.match_title = self._match_title()
+            self.result = self._result()
+            self.ground_id = self._ground_id()
+            self.ground_name = self._ground_name()
+            self.lighting = self._lighting()
+            self.followon = self._followon()
+            self.scheduled_overs = self._scheduled_overs()
+            self.innings_list = self._innings_list()
+            self.innings = self._innings()
+            self.latest_batting = self._latest_batting()
+            self.latest_bowling = self._latest_bowling()
+            self.latest_innings = self._latest_innings()
+            self.latest_innings_fow = self._latest_innings_fow()
+            self.team_1 = self._team_1()
+            self.team_1_id = self._team_1_id()
+            self.team_1_abbreviation = self._team_1_abbreviation()
+            self.team_1_players = self._team_1_players()
+            self.team_1_innings = self._team_1_innings()
+            self.team_1_run_rate = self._team_1_run_rate()
+            self.team_1_overs_batted = self._team_1_overs_batted()
+            self.team_1_batting_result = self._team_1_batting_result()
+            self.team_2 = self._team_2()
+            self.team_2_id = self._team_2_id()
+            self.team_2_abbreviation = self._team_2_abbreviation()
+            self.team_2_players = self._team_2_players()
+            self.team_2_innings = self._team_2_innings()
+            self.team_2_run_rate = self._team_2_run_rate()
+            self.team_2_overs_batted = self._team_2_overs_batted()
+            self.team_2_batting_result = self._team_2_batting_result()
+            self.home_team = self._home_team()
+            self.batting_first = self._batting_first()
+            self.match_winner = self._match_winner()
+            self.toss_winner = self._toss_winner()
+            self.toss_decision = self._toss_decision()
 
     def get_json(self):
         r = requests.get(self.json_url)
@@ -21,190 +74,190 @@ class Match(object):
     def match_json(self):
         return self.json['match']
 
-    def status(self):
+    def _status(self):
         return self.match_json()['match_status']
 
-    def match_class(self):
+    def _match_class(self):
         if self.match_json()['international_class_card'] != "":
             return self.match_json()['international_class_card']
         else:
             return self.match_json()['general_class_card']
 
-    def season(self):
+    def _season(self):
         return self.match_json()['season']
 
-    def description(self):
+    def _description(self):
         return self.json['description']
 
-    def series(self):
+    def _series(self):
         return self.json['series']
 
-    def officials(self):
+    def _officials(self):
         return self.json['official']
 
     # live matches only
-    def current_summary(self):
+    def _current_summary(self):
         if self.match_json().has_key('current_summary'):
             return self.match_json()['current_summary']
 
-    def present_datetime_local(self):
+    def _present_datetime_local(self):
         return self.match_json()['present_datetime_local']
 
-    def present_datetime_gmt(self):
+    def _present_datetime_gmt(self):
         return self.match_json()['present_datetime_gmt']
 
-    def start_datetime_local(self):
+    def _start_datetime_local(self):
         return self.match_json()['start_datetime_local']
 
-    def start_datetime_gmt(self):
+    def _start_datetime_gmt(self):
         return self.match_json()['start_datetime_gmt']
 
-    def cancelled_match(self):
+    def _cancelled_match(self):
         if self.match_json()['cancelled_match'] == 'N':
             return False
         else:
             return True
 
-    def rain_rule(self):
+    def _rain_rule(self):
         if self.match_json()['rain_rule'] == "1":
             return self.match_json()['rain_rule_name']
         else:
             return None
 
-    def date(self):
+    def _date(self):
         return self.match_json()['start_date_raw']
 
-    def continent(self):
+    def _continent(self):
         return self.match_json()['continent_name']
 
-    def town_area(self):
+    def _town_area(self):
         return self.match_json()['town_area']
 
-    def town_name(self):
+    def _town_name(self):
         return self.match_json()['town_name']
 
-    def town_id(self):
+    def _town_id(self):
         return self.match_json()['town_id']
 
-    def weather_location_code(self):
+    def _weather_location_code(self):
         return self.match_json()['weather_location_code']
 
-    def match_title(self):
+    def _match_title(self):
         return self.match_json()['cms_match_title']
 
-    def result(self):
+    def _result(self):
         return self.json['live']['status']
 
-    def ground_id(self):
+    def _ground_id(self):
         return self.match_json()['ground_id']
 
-    def ground_name(self):
+    def _ground_name(self):
         return self.match_json()['ground_name']
 
-    def lighting(self):
+    def _lighting(self):
         return self.match_json()['floodlit_name']
 
-    def followon(self):
+    def _followon(self):
         if self.match_json()['followon'] == '1':
             return True
         else:
             return False
 
-    def scheduled_overs(self):
+    def _scheduled_overs(self):
         return int(self.match_json()['scheduled_overs'])
 
-    def innings_list(self):
+    def _innings_list(self):
         return self.json['centre']['common']['innings_list']
 
-    def innings(self):
+    def _innings(self):
         return self.json['innings']
 
-    def latest_batting(self):
+    def _latest_batting(self):
         return self.json['centre']['common']['batting']
 
-    def latest_bowling(self):
+    def _latest_bowling(self):
         return self.json['centre']['common']['bowling']
 
-    def latest_innings(self):
+    def _latest_innings(self):
         return self.json['centre']['common']['innings']
 
-    def latest_innings_fow(self):
+    def _latest_innings_fow(self):
         if self.json['centre'].has_key('fow'):
             return self.json['centre']['fow']
         else:
             return None
 
-    def team_1(self):
+    def _team_1(self):
         return self.json['team'][0]
 
-    def team_1_id(self):
+    def _team_1_id(self):
         return self.team_1()['team_id']
 
-    def team_1_abbreviation(self):
+    def _team_1_abbreviation(self):
         return self.team_1()['team_abbreviation']
 
-    def team_1_players(self):
+    def _team_1_players(self):
         return self.team_1()['player']
 
-    def team_1_innings(self):
+    def _team_1_innings(self):
         return [inn for inn in self.json['innings'] if inn['batting_team_id'] == self.team_1_id()][0]
 
-    def team_1_run_rate(self):
+    def _team_1_run_rate(self):
         return float(self.team_1_innings()['run_rate'])
 
-    def team_1_overs_batted(self):
+    def _team_1_overs_batted(self):
         return float(self.team_1_innings()['overs'])
 
-    def team1_batting_result(self):
+    def _team_1_batting_result(self):
         return self.team_1_innings()['event_name']
 
-    def team_2(self):
+    def _team_2(self):
         return self.json['team'][1]
 
-    def team_2_id(self):
+    def _team_2_id(self):
         return self.team_2()['team_id']
 
-    def team_2_abbreviation(self):
+    def _team_2_abbreviation(self):
         return self.team_2()['team_abbreviation']
 
-    def team_2_players(self):
+    def _team_2_players(self):
         return self.team_2()['player']
 
-    def team_2_innings(self):
+    def _team_2_innings(self):
         return [inn for inn in self.json['innings'] if inn['batting_team_id'] == self.team_2_id()][0]
 
-    def team_2_run_rate(self):
+    def _team_2_run_rate(self):
         return float(self.team_2_innings()['run_rate'])
 
-    def team_2_overs_batted(self):
+    def _team_2_overs_batted(self):
         return float(self.team_2_innings()['overs'])
 
-    def team2_batting_result(self):
+    def _team_2_batting_result(self):
         return self.team_2_innings()['event_name']
 
-    def home_team(self):
+    def _home_team(self):
         if self.team_1_id() == self.match_json()['home_team_id']:
             return self.team_1_abbreviation()
         else:
             return self.team_2_abbreviation()
 
-    def batting_first(self):
+    def _batting_first(self):
         if self.team_1_id() == self.match_json()['batting_first_team_id']:
             return self.team_1_abbreviation()
         else:
             return self.team_2_abbreviation()
 
-    def match_winner(self):
+    def _match_winner(self):
         if self.team_1_id() == self.match_json()['winner_team_id']:
             return self.team_1_abbreviation()
         else:
             return self.team_2_abbreviation()
 
-    def toss_winner(self):
+    def _toss_winner(self):
         if self.team_1_id() == self.match_json()['toss_winner_team_id']:
             return self.team_1_id()
         else:
             return self.team_2_id()
 
-    def toss_decision(self):
+    def _toss_decision(self):
         return self.match_json()['toss_decision_name']
