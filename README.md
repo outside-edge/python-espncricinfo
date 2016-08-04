@@ -30,9 +30,11 @@ For individual matches, pass in the ID as a string:
 ```python
 >>> from espncricinfo.match import Match
 >>> m = Match('64148')
->>> m.description()
+>>> m.description
 u'England [Marylebone Cricket Club] tour of Australia, Only ODI: Australia v England at Melbourne, Jan 5, 1971'
 ```
+
+A full list of methods available to an instance of the `Match` class is in [the code](https://github.com/dwillis/python-espncricinfo/blob/master/espncricinfo/match.py).
 
 For player details, pass in the player ID (found in a player's URL - for example, [Ajinkya Rahane](http://www.espncricinfo.com/west-indies-v-india-2016/content/player/277916.html) is '277916'):
 
