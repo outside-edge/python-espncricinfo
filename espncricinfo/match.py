@@ -1,4 +1,5 @@
 import requests
+from bs4 import BeautifulSoup
 from espncricinfo.exceptions import NoMatchFoundError
 
 class Match(object):
@@ -9,7 +10,7 @@ class Match(object):
         self.json_url = "http://www.espncricinfo.com/matches/engine/match/{0}.json".format(str(match_id))
         self.json = self.get_json()
         if self.json:
-            self.__unicode__ = self.description()
+            self.__unicode__ = self._description()
             self.status = self._status()
             self.match_class = self._match_class()
             self.season = self._season()
@@ -191,73 +192,83 @@ class Match(object):
         return self.json['team'][0]
 
     def _team_1_id(self):
-        return self.team_1()['team_id']
+        return self._team_1()['team_id']
 
     def _team_1_abbreviation(self):
-        return self.team_1()['team_abbreviation']
+        return self._team_1()['team_abbreviation']
 
     def _team_1_players(self):
-        return self.team_1()['player']
+        return self._team_1()['player']
 
     def _team_1_innings(self):
-        return [inn for inn in self.json['innings'] if inn['batting_team_id'] == self.team_1_id()][0]
+        return [inn for inn in self.json['innings'] if inn['batting_team_id'] == self._team_1_id()][0]
 
     def _team_1_run_rate(self):
-        return float(self.team_1_innings()['run_rate'])
+        return float(self._team_1_innings()['run_rate'])
 
     def _team_1_overs_batted(self):
-        return float(self.team_1_innings()['overs'])
+        return float(self._team_1_innings()['overs'])
 
     def _team_1_batting_result(self):
-        return self.team_1_innings()['event_name']
+        return self._team_1_innings()['event_name']
 
     def _team_2(self):
         return self.json['team'][1]
 
     def _team_2_id(self):
-        return self.team_2()['team_id']
+        return self._team_2()['team_id']
 
     def _team_2_abbreviation(self):
-        return self.team_2()['team_abbreviation']
+        return self._team_2()['team_abbreviation']
 
     def _team_2_players(self):
-        return self.team_2()['player']
+        return self._team_2()['player']
 
     def _team_2_innings(self):
-        return [inn for inn in self.json['innings'] if inn['batting_team_id'] == self.team_2_id()][0]
+        return [inn for inn in self.json['innings'] if inn['batting_team_id'] == self._team_2_id()][0]
 
     def _team_2_run_rate(self):
-        return float(self.team_2_innings()['run_rate'])
+        return float(self._team_2_innings()['run_rate'])
 
     def _team_2_overs_batted(self):
-        return float(self.team_2_innings()['overs'])
+        return float(self._team_2_innings()['overs'])
 
     def _team_2_batting_result(self):
-        return self.team_2_innings()['event_name']
+        return self._team_2_innings()['event_name']
 
     def _home_team(self):
-        if self.team_1_id() == self.match_json()['home_team_id']:
-            return self.team_1_abbreviation()
+        if self._team_1_id() == self.match_json()['home_team_id']:
+            return self._team_1_abbreviation()
         else:
-            return self.team_2_abbreviation()
+            return self._team_2_abbreviation()
 
     def _batting_first(self):
-        if self.team_1_id() == self.match_json()['batting_first_team_id']:
-            return self.team_1_abbreviation()
+        if self._team_1_id() == self.match_json()['batting_first_team_id']:
+            return self._team_1_abbreviation()
         else:
-            return self.team_2_abbreviation()
+            return self._team_2_abbreviation()
 
     def _match_winner(self):
-        if self.team_1_id() == self.match_json()['winner_team_id']:
-            return self.team_1_abbreviation()
+        if self._team_1_id() == self.match_json()['winner_team_id']:
+            return self._team_1_abbreviation()
         else:
-            return self.team_2_abbreviation()
+            return self._team_2_abbreviation()
 
     def _toss_winner(self):
-        if self.team_1_id() == self.match_json()['toss_winner_team_id']:
-            return self.team_1_id()
+        if self._team_1_id() == self.match_json()['toss_winner_team_id']:
+            return self._team_1_id()
         else:
-            return self.team_2_id()
+            return self._team_2_id()
 
     def _toss_decision(self):
         return self.match_json()['toss_decision_name']
+
+    @staticmethod
+    def get_recent_matches(date=None):
+        if date:
+            url = "http://www.espncricinfo.com/ci/engine/match/index.html?date=%sview=week" % date
+        else:
+            url = "http://www.espncricinfo.com/ci/engine/match/index.html?view=week"
+        r = requests.get(url)
+        soup = BeautifulSoup(r.text, 'html.parser')
+        return [x['href'].split('/',4)[4].split('.')[0] for x in soup.findAll('a', href=True, text='Scorecard')]
