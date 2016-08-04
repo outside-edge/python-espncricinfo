@@ -1,6 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
-from espncricinfo.exceptions import NoMatchFoundError
+from espncricinfo.exceptions import NoMatchFoundError, NoScorecardError
 
 class Match(object):
 
@@ -69,6 +69,8 @@ class Match(object):
         r = requests.get(self.json_url)
         if r.status_code == 404:
             raise NoMatchFoundError
+        elif 'Scorecard not yet available' in r.text:
+            raise NoScorecardError
         else:
             return r.json()
 
@@ -168,19 +170,31 @@ class Match(object):
         return int(self.match_json()['scheduled_overs'])
 
     def _innings_list(self):
-        return self.json['centre']['common']['innings_list']
+        try:
+            return self.json['centre']['common']['innings_list']
+        except:
+            return None
 
     def _innings(self):
         return self.json['innings']
 
     def _latest_batting(self):
-        return self.json['centre']['common']['batting']
+        try:
+            return self.json['centre']['common']['batting']
+        except:
+            return None
 
     def _latest_bowling(self):
-        return self.json['centre']['common']['bowling']
+        try:
+            return self.json['centre']['common']['bowling']
+        except:
+            return None
 
     def _latest_innings(self):
-        return self.json['centre']['common']['innings']
+        try:
+            return self.json['centre']['common']['innings']
+        except:
+            return None
 
     def _latest_innings_fow(self):
         if self.json['centre'].has_key('fow'):
