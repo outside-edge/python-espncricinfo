@@ -100,7 +100,7 @@ class Match(object):
 
     # live matches only
     def _current_summary(self):
-        if self.match_json().has_key('current_summary'):
+        if 'current_summary' in self.match_json().keys():
             return self.match_json()['current_summary']
 
     def _present_datetime_local(self):
@@ -197,7 +197,7 @@ class Match(object):
             return None
 
     def _latest_innings_fow(self):
-        if self.json['centre'].has_key('fow'):
+        if 'fow' in self.json['centre'].keys():
             return self.json['centre']['fow']
         else:
             return None
