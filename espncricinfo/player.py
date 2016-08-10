@@ -1,42 +1,48 @@
 import requests
 from bs4 import BeautifulSoup
 import dateparser
+from espncricinfo.exceptions import PlayerNotFoundError
 
 class Player(object):
 
     def __init__(self, player_id):
         self.url = "http://www.espncricinfo.com/whatever/content/current/player/{0}.html".format(str(player_id))
         self.parsed_html = self.get_html()
-        self.player_information = self.parse_player_information()
-        self.name = self._name()
-        self.full_name = self._full_name()
-        self.date_of_birth = self._date_of_birth()
-        self.current_age = self._current_age()
-        self.major_teams = self._major_teams()
-        self.nickname = self._nickname()
-        self.playing_role = self._playing_role()
-        self.batting_style = self._batting_style()
-        self.bowling_style = self._bowling_style()
-        self.batting_fielding_averages = self._batting_fielding_averages()
-        self.bowling_averages = self._bowling_averages()
-        self.test_debut = self._test_debut()
-        self.last_test = self._last_test()
-        self.t20i_debut = self._t20i_debut()
-        self.last_t20i = self._last_t20i()
-        self.first_class_debut = self._first_class_debut()
-        self.last_first_class = self._last_first_class()
-        self.list_a_debut = self._list_a_debut()
-        self.last_list_a = self._last_list_a()
-        self.t20_debut = self._t20_debut()
-        self.last_t20 = self._last_t20()
-        self.odi_debut = self._odi_debut()
-        self.last_odi = self._last_odi()
-        self.recent_matches = self._recent_matches()
+        if self.parsed_html:
+            self.__unicode__ = self._full_name()
+            self.player_information = self.parse_player_information()
+            self.name = self._name()
+            self.full_name = self._full_name()
+            self.date_of_birth = self._date_of_birth()
+            self.current_age = self._current_age()
+            self.major_teams = self._major_teams()
+            self.nickname = self._nickname()
+            self.playing_role = self._playing_role()
+            self.batting_style = self._batting_style()
+            self.bowling_style = self._bowling_style()
+            self.batting_fielding_averages = self._batting_fielding_averages()
+            self.bowling_averages = self._bowling_averages()
+            self.test_debut = self._test_debut()
+            self.last_test = self._last_test()
+            self.t20i_debut = self._t20i_debut()
+            self.last_t20i = self._last_t20i()
+            self.first_class_debut = self._first_class_debut()
+            self.last_first_class = self._last_first_class()
+            self.list_a_debut = self._list_a_debut()
+            self.last_list_a = self._last_list_a()
+            self.t20_debut = self._t20_debut()
+            self.last_t20 = self._last_t20()
+            self.odi_debut = self._odi_debut()
+            self.last_odi = self._last_odi()
+            self.recent_matches = self._recent_matches()
 
     def get_html(self):
         r = requests.get(self.url)
-        soup = BeautifulSoup(r.text, 'html.parser')
-        return soup.find("div", class_="pnl490M")
+        if r.status_code == 404:
+            raise PlayerNotFoundError
+        else:
+            soup = BeautifulSoup(r.text, 'html.parser')
+            return soup.find("div", class_="pnl490M")
 
     def parse_player_information(self):
         return self.parsed_html.find_all('p', class_='ciPlayerinformationtxt')

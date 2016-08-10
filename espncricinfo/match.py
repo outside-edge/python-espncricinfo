@@ -1,6 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
-from espncricinfo.exceptions import NoMatchFoundError, NoScorecardError
+from espncricinfo.exceptions import MatchNotFoundError, NoScorecardError
 
 class Match(object):
 
@@ -68,7 +68,7 @@ class Match(object):
     def get_json(self):
         r = requests.get(self.json_url)
         if r.status_code == 404:
-            raise NoMatchFoundError
+            raise MatchNotFoundError
         elif 'Scorecard not yet available' in r.text:
             raise NoScorecardError
         else:
