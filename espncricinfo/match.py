@@ -64,6 +64,9 @@ class Match(object):
             self.match_winner = self._match_winner()
             self.toss_winner = self._toss_winner()
             self.toss_decision = self._toss_decision()
+            self.toss_decision_name = self._toss_decision_name()
+            self.toss_choice_team_id = self._toss_choice_team_id()
+            self.toss_winner_team_id = self._toss_winner_team_id()
 
     def get_json(self):
         r = requests.get(self.json_url)
@@ -275,7 +278,16 @@ class Match(object):
             return self._team_2_id()
 
     def _toss_decision(self):
+        return self.match_json()['toss_decision']
+
+    def _toss_decision_name(self):
         return self.match_json()['toss_decision_name']
+
+    def _toss_choice_team_id(self):
+        return self.match_json()['toss_choice_team_id']
+
+    def _toss_winner_team_id(self):
+        return self.match_json()['toss_winner_team_id']
 
     @staticmethod
     def get_recent_matches(date=None):
