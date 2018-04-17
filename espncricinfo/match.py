@@ -16,6 +16,7 @@ class Match(object):
             self.season = self._season()
             self.description = self._description()
             self.series = self._series()
+            self.series_name = self._series_name()
             self.officials = self._officials()
             self.current_summary = self._current_summary()
             self.present_datetime_local = self._present_datetime_local()
@@ -94,6 +95,12 @@ class Match(object):
 
     def _series(self):
         return self.json['series']
+
+    def _series_name(self):
+        try:
+            return self.json['series'][0]['series_name']
+        except:
+            return None
 
     def _officials(self):
         return self.json['official']
