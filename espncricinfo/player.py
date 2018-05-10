@@ -80,8 +80,8 @@ class Player(object):
 
     def _batting_fielding_averages(self):
         headers = ['matches', 'innings', 'not_out', 'runs', 'high_score', 'batting_average', 'balls_faced', 'strike_rate', 'centuries', 'fifties', 'fours', 'sixes', 'catches', 'stumpings']
-        bat_field = [td.text for td in self.parsed_html.find('table', class_='engineTable').findAll('td')]
-        num_formats = len(bat_field)/15
+        bat_field = [td.text.strip() for td in self.parsed_html.find('table', class_='engineTable').findAll('td')]
+        num_formats = int(len(bat_field)/15)
         format_positions = [15*x for x in range(num_formats)]
         formats = [bat_field[x] for x in format_positions]
         avg_starts = [x+1 for x in format_positions[:num_formats-1]]
@@ -92,8 +92,8 @@ class Player(object):
 
     def _bowling_averages(self):
         headers = ['matches', 'innings', 'balls_delivered', 'runs', 'wickets', 'best_innings', 'best_match', 'bowling_average', 'economy', 'strike_rate', 'four_wickets', 'five_wickets', 'ten_wickets']
-        bowling = [td.text for td in self.parsed_html.findAll('table', class_='engineTable')[1].findAll('td')]
-        num_formats = len(bowling)/14
+        bowling = [td.text.strip() for td in self.parsed_html.findAll('table', class_='engineTable')[1].findAll('td')]
+        num_formats = int(len(bowling)/14)
         format_positions = [14*x for x in range(num_formats)]
         formats = [bowling[x] for x in format_positions]
         avg_starts = [x+1 for x in format_positions[:num_formats-1]]
