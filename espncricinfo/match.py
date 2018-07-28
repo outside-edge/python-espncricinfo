@@ -228,7 +228,10 @@ class Match(object):
         return [inn for inn in self.json['innings'] if inn['batting_team_id'] == self._team_1_id()][0]
 
     def _team_1_run_rate(self):
-        return float(self._team_1_innings()['run_rate'])
+        if self._team_1_innings()['run_rate'] == None:
+            return None
+        else:
+            return float(self._team_1_innings()['run_rate'])
 
     def _team_1_overs_batted(self):
         return float(self._team_1_innings()['overs'])
@@ -252,7 +255,10 @@ class Match(object):
         return [inn for inn in self.json['innings'] if inn['batting_team_id'] == self._team_2_id()][0]
 
     def _team_2_run_rate(self):
-        return float(self._team_2_innings()['run_rate'])
+        if self._team_2_innings()['run_rate'] == None:
+            return None
+        else:
+            return float(self._team_2_innings()['run_rate'])
 
     def _team_2_overs_batted(self):
         return float(self._team_2_innings()['overs'])
