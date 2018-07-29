@@ -8,9 +8,9 @@ class Player(object):
     def __init__(self, player_id):
         self.url = "http://www.espncricinfo.com/whatever/content/current/player/{0}.html".format(str(player_id))
         self.parsed_html = self.get_html()
+        self.player_information = self._parse_player_information()
         if self.parsed_html:
             self.__unicode__ = self._full_name()
-            self.player_information = self.parse_player_information()
             self.name = self._name()
             self.full_name = self._full_name()
             self.date_of_birth = self._date_of_birth()
@@ -44,7 +44,7 @@ class Player(object):
             soup = BeautifulSoup(r.text, 'html.parser')
             return soup.find("div", class_="pnl490M")
 
-    def parse_player_information(self):
+    def _parse_player_information(self):
         return self.parsed_html.find_all('p', class_='ciPlayerinformationtxt')
 
     def _name(self):
@@ -87,8 +87,8 @@ class Player(object):
         avg_starts = [x+1 for x in format_positions[:num_formats-1]]
         avg_finish = [x+14 for x in avg_starts]
         format_averages = [bat_field[x:y] for x,y in zip(avg_starts, avg_finish)]
-        combined = zip(formats, format_averages)
-        return [{x: zip(headers, y)} for x,y in combined]
+        combined = list(zip(formats, format_averages))
+        return [{x: list(zip(headers, y))} for x,y in combined]
 
     def _bowling_averages(self):
         headers = ['matches', 'innings', 'balls_delivered', 'runs', 'wickets', 'best_innings', 'best_match', 'bowling_average', 'economy', 'strike_rate', 'four_wickets', 'five_wickets', 'ten_wickets']
@@ -99,8 +99,8 @@ class Player(object):
         avg_starts = [x+1 for x in format_positions[:num_formats-1]]
         avg_finish = [x+13 for x in avg_starts]
         format_averages = [bowling[x:y] for x,y in zip(avg_starts, avg_finish)]
-        combined = zip(formats, format_averages)
-        return [{x: zip(headers, y)} for x,y in combined]
+        combined = list(zip(formats, format_averages))
+        return [{x: list(zip(headers, y))} for x,y in combined]
 
     def _debuts_and_lasts(self):
         return self.parsed_html.findAll('table', class_='engineTable')[2]
