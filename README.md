@@ -1,6 +1,6 @@
 # python-espncricinfo
 
-A Python client for ESPNCricInfo's match and summary JSON.
+A Python 3 client for ESPN Cricinfo's match, summary and player information.
 
 ### Description
 
