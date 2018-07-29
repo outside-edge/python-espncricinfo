@@ -11,7 +11,7 @@ Disclaimer: This library is not intended for commercial use and neither it nor i
 ### Installation
 
 ```python
-pip install python-espncricinfo
+pip3 install python-espncricinfo
 ```
 
 ### Usage
