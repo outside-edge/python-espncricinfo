@@ -81,6 +81,12 @@ class Match(object):
     def match_json(self):
         return self.json['match']
 
+    def __str__(self):
+        return self.json['description']
+
+    def __unicode__(self):
+        return self.json['description']
+
     def _status(self):
         return self.match_json()['match_status']
 
