@@ -24,7 +24,7 @@ For a summary of live matches, create an instance of the `Summary` class:
 >>> from espncricinfo.summary import Summary
 >>> s = Summary()
 >>> s.match_ids
-[u'68079', u'68209', u'68081', u'61375', u'65429']
+['68079', '68209', '68081', '61375', '65429']
 ```
 
 For individual matches, pass in the ID as a string:
@@ -33,7 +33,7 @@ For individual matches, pass in the ID as a string:
 >>> from espncricinfo.match import Match
 >>> m = Match('64148')
 >>> m.description
-u'England [Marylebone Cricket Club] tour of Australia, Only ODI: Australia v England at Melbourne, Jan 5, 1971'
+'England [Marylebone Cricket Club] tour of Australia, Only ODI: Australia v England at Melbourne, Jan 5, 1971'
 ```
 
 More recent matches will have more methods available to them (for older matches, those methods will return `None`). A full list of methods available to an instance of the `Match` class is in [the code](https://github.com/dwillis/python-espncricinfo/blob/master/espncricinfo/match.py).
@@ -44,10 +44,19 @@ For player details, pass in the player ID (found in a player's URL - for example
 >>> from espncricinfo.player import Player
 >>> p = Player('277916')
 >>> p.name
-u'Ajinkya Rahane'
+'Ajinkya Rahane'
 ```
 
 A full list of methods available to an instance of the `Player` class is in [the code](https://github.com/dwillis/python-espncricinfo/blob/master/espncricinfo/player.py).
+
+For series (or league) details, pass in the series ID (found in a match URL, for example, [India's 2018 tour of England](http://www.espncricinfo.com/series/18018/game/1119549/england-vs-india-1st-test-ind-in-eng-2018) is '18018'):
+
+```python
+>>> from espncricinfo.series import Series
+>>> s = Series('18018')
+>>> s.name
+'India tour of Ireland and England 2018'
+```
 
 ### Tests
 
