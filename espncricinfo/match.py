@@ -1,3 +1,4 @@
+import json
 import requests
 from bs4 import BeautifulSoup
 from espncricinfo.exceptions import MatchNotFoundError, NoScorecardError
@@ -9,14 +10,18 @@ class Match(object):
         self.match_url = "http://www.espncricinfo.com/matches/engine/match/{0}.html".format(str(match_id))
         self.json_url = "http://www.espncricinfo.com/matches/engine/match/{0}.json".format(str(match_id))
         self.json = self.get_json()
+        self.html = self.get_html()
+        self.comms_json = self.get_comms_json()
         if self.json:
             self.__unicode__ = self._description()
             self.status = self._status()
             self.match_class = self._match_class()
             self.season = self._season()
             self.description = self._description()
+            self.legacy_scorecard_url = self._legacy_scorecard_url()
             self.series = self._series()
             self.series_name = self._series_name()
+            self.series_id = self._series_id()
             self.officials = self._officials()
             self.current_summary = self._current_summary()
             self.present_datetime_local = self._present_datetime_local()
@@ -68,6 +73,17 @@ class Match(object):
             self.toss_decision_name = self._toss_decision_name()
             self.toss_choice_team_id = self._toss_choice_team_id()
             self.toss_winner_team_id = self._toss_winner_team_id()
+            self.espn_api_url = self._espn_api_url()
+        if self.comms_json:
+            self.rosters = self._rosters()
+            self.scorecard_summary = self._scorecard_summary()
+            self.full_scorecard = self._full_scorecard()
+            self.game_state = self._game_state()
+            self.all_innings = self._all_innings()
+            self.all_partnerships = self._all_partnerships()
+            self.close_of_play = self._close_of_play()
+            self.hawkeye_source = self._hawkeye_source()
+
 
     def get_json(self):
         r = requests.get(self.json_url)
@@ -78,8 +94,28 @@ class Match(object):
         else:
             return r.json()
 
+    def get_html(self):
+        r = requests.get(self.match_url)
+        if r.status_code == 404:
+            raise MatchNotFoundError
+        else:
+            return BeautifulSoup(r.text, 'html.parser')
+
     def match_json(self):
         return self.json['match']
+
+    def get_comms_json(self):
+        try:
+            text = self.html.find_all('script')[11].get_text().replace("\n", " ").replace('window.__INITIAL_STATE__ =','').replace('&dagger;','wk').replace('&amp;','').replace('wkts;','wkts,').strip().split(';')[0]
+            return json.loads(text)
+        except:
+            return None
+
+    def _espn_api_url(self):
+        return "http://site.api.espn.com/apis/site/v2/sports/cricket/{0}/summary?event={1}".format(self.series_id, self.match_id)
+
+    def _legacy_scorecard_url(self):
+        return "http://static.espncricinfo.com"+self.match_json()['legacy_url']
 
     def __str__(self):
         return self.json['description']
@@ -107,9 +143,12 @@ class Match(object):
 
     def _series_name(self):
         try:
-            return self.json['series'][0]['series_name']
+            return self.json['series'][-1]['series_name']
         except:
             return None
+
+    def _series_id(self):
+        return self.json['series'][-1]['core_recreation_id']
 
     def _officials(self):
         return self.json['official']
@@ -307,6 +346,98 @@ class Match(object):
 
     def _toss_winner_team_id(self):
         return self.match_json()['toss_winner_team_id']
+
+    # comms_json methods
+
+    def _rosters(self):
+        if self.comms_json:
+            return self.comms_json['gamePackage']['rosters']
+        else:
+            return None
+
+    def _scorecard_summary(self):
+        if self.comms_json:
+            return self.comms_json['gamePackage']['scorecardSummary']
+        else:
+            return None
+
+    def _full_scorecard(self):
+        if self.comms_json:
+            return self.comms_json['gamePackage']['scorecard']
+        else:
+            return None
+
+    def _game_state(self):
+        if self.comms_json:
+            return self.comms_json['gamePackage']['gameStateClass']
+        else:
+            return None
+
+    def _all_innings(self):
+        if self.comms_json:
+            return self.comms_json['gamePackage']['allInnings']
+        else:
+            return None
+
+    def _all_partnerships(self):
+        if self.comms_json:
+            return self.comms_json['gamePackage']['statistics']['allPartnerships']
+        else:
+            return None
+
+    def _close_of_play(self):
+        if self.comms_json:
+            return self.comms_json['gamePackage']['closeOfPlay']['cop']
+        else:
+            return None
+
+    def _hawkeye_source(self):
+        if self.comms_json:
+            return self.comms_json['gamePackage']['hawkEye']['hawkEyeSrc']
+        else:
+            return None
+
+    def batsmen(self, innings):
+        if self.comms_json:
+            return self.comms_json['gamePackage']['scorecard']['innings'][str(innings)]['batsmen']
+        else:
+            return None
+
+    def bowlers(self, innings):
+        if self.comms_json:
+            return self.comms_json['gamePackage']['scorecard']['innings'][str(innings)]['bowlers']
+        else:
+            return None
+
+    def did_not_bat(self, innings):
+        if self.comms_json:
+            return self.comms_json['gamePackage']['scorecard']['innings'][str(innings)]['didNotBat']
+        else:
+            return None
+
+    def absent(self, innings):
+        if self.comms_json:
+            return self.comms_json['gamePackage']['scorecard']['innings'][str(innings)]['absent']
+        else:
+            return None
+
+    def extras(self, innings):
+        if self.comms_json:
+            return self.comms_json['gamePackage']['scorecard']['innings'][str(innings)]['extras']
+        else:
+            return None
+
+    def fows(self, innings):
+        if self.comms_json:
+            return self.comms_json['gamePackage']['scorecard']['innings'][str(innings)]['fows']
+        else:
+            return None
+
+    def partnerships(self, innings):
+        if self.comms_json:
+            return self.comms_json['gamePackage']['statistics']['pshipByInnings'][int(innings)-1]['data']
+        else:
+            return None
 
     @staticmethod
     def get_recent_matches(date=None):
