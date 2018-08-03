@@ -22,6 +22,7 @@ class Match(object):
             self.series = self._series()
             self.series_name = self._series_name()
             self.series_id = self._series_id()
+            self.event_url = "http://core.espnuk.org/v2/sports/cricket/leagues/{0}/events/{1}".format(str(self.series_id), str(match_id))
             self.officials = self._officials()
             self.current_summary = self._current_summary()
             self.present_datetime_local = self._present_datetime_local()
@@ -74,7 +75,7 @@ class Match(object):
             self.toss_choice_team_id = self._toss_choice_team_id()
             self.toss_winner_team_id = self._toss_winner_team_id()
             self.espn_api_url = self._espn_api_url()
-        if self.comms_json:
+            # from comms_json
             self.rosters = self._rosters()
             self.scorecard_summary = self._scorecard_summary()
             self.full_scorecard = self._full_scorecard()
@@ -106,7 +107,7 @@ class Match(object):
 
     def get_comms_json(self):
         try:
-            text = self.html.find_all('script')[11].get_text().replace("\n", " ").replace('window.__INITIAL_STATE__ =','').replace('&dagger;','wk').replace('&amp;','').replace('wkts;','wkts,').strip().split(';')[0]
+            text = self.html.find_all('script')[11].get_text().replace("\n", " ").replace('window.__INITIAL_STATE__ =','').replace('&dagger;','wk').replace('&amp;','').replace('wkts;','wkts,').replace('wkt;','wkt,').strip().replace('};', "}};").split('};')[0]
             return json.loads(text)
         except:
             return None
@@ -116,6 +117,9 @@ class Match(object):
 
     def _legacy_scorecard_url(self):
         return "http://static.espncricinfo.com"+self.match_json()['legacy_url']
+
+    def details_url(self, page=1):
+        return self.event_url+"/competitions/{0}/details?pagesize=1000&page={1}".format(str(match_id), str(page))
 
     def __str__(self):
         return self.json['description']
