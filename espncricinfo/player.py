@@ -168,8 +168,12 @@ class Player(object):
     def _first_class_debut(self):
         first_class_debut = next((tr for tr in self._debuts_and_lasts().findAll('tr') if tr.find('b').text == 'First-class debut'), None)
         if first_class_debut:
-            url = 'http://www.espncricinfo.com'+first_class_debut.find('a')['href']
-            match_id = int(first_class_debut.find('a')['href'].split('/', 4)[4].split('.')[0])
+            if first_class_debut.find('a'):
+                url = 'http://www.espncricinfo.com'+first_class_debut.find('a')['href']
+                match_id = int(first_class_debut.find('a')['href'].split('/', 4)[4].split('.')[0])
+            else:
+                url = None
+                match_id = None
             title = first_class_debut.findAll('td')[1].text.replace(' scorecard','')
             return {'url': url, 'match_id': match_id, 'title': title}
         else:
@@ -188,8 +192,12 @@ class Player(object):
     def _list_a_debut(self):
         list_a_debut = next((tr for tr in self._debuts_and_lasts().findAll('tr') if tr.find('b').text == 'List A debut'), None)
         if list_a_debut:
-            url = 'http://www.espncricinfo.com'+list_a_debut.find('a')['href']
-            match_id = int(list_a_debut.find('a')['href'].split('/', 4)[4].split('.')[0])
+            if list_a_debut.find('a'):
+                url = 'http://www.espncricinfo.com'+list_a_debut.find('a')['href']
+                match_id = int(list_a_debut.find('a')['href'].split('/', 4)[4].split('.')[0])
+            else:
+                url = None
+                match_id = None
             title = list_a_debut.findAll('td')[1].text.replace(' scorecard','')
             return {'url': url, 'match_id': match_id, 'title': title}
         else:
