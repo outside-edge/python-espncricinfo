@@ -2,16 +2,21 @@ import requests
 from bs4 import BeautifulSoup
 import dateparser
 from espncricinfo.exceptions import PlayerNotFoundError
+from espncricinfo.match import Match
 
 class Player(object):
 
     def __init__(self, player_id):
-        self.url = "http://www.espncricinfo.com/whatever/content/current/player/{0}.html".format(str(player_id))
+        self.url = "http://www.espncricinfo.com/ci/content/player/{0}.html".format(str(player_id))
+        self.json_url = "http://new.core.espnuk.org/v2/sports/cricket/athletes/{0}".format(str(player_id))
         self.parsed_html = self.get_html()
+        self.json = self.get_json()
+        self.player_information = self._parse_player_information()
+        self.cricinfo_id = str(player_id)
         if self.parsed_html:
             self.__unicode__ = self._full_name()
-            self.player_information = self.parse_player_information()
             self.name = self._name()
+            self.first_name = self._first_name()
             self.full_name = self._full_name()
             self.date_of_birth = self._date_of_birth()
             self.current_age = self._current_age()
@@ -44,21 +49,36 @@ class Player(object):
             soup = BeautifulSoup(r.text, 'html.parser')
             return soup.find("div", class_="pnl490M")
 
-    def parse_player_information(self):
+    def get_json(self):
+        r = requests.get(self.json_url)
+        if r.status_code == 404:
+            raise PlayerNotFoundError
+        else:
+            return r.json()
+
+    def _parse_player_information(self):
         return self.parsed_html.find_all('p', class_='ciPlayerinformationtxt')
 
     def _name(self):
-        return self.parsed_html.find('h1').text.strip()
+        return self.json['name']
+
+    def _first_name(self):
+        return self.json['firstName']
+
+    def _middle_name(self):
+        return self.json['middleName']
+
+    def _last_name(self):
+        return self.json['lastName']
 
     def _full_name(self):
-        return next((p.find('span').text for p in self.player_information if p.find('b').text == 'Full name'), None)
+        return self.json['fullName']
 
     def _date_of_birth(self):
-        month_day, year = next(p.find('span').text for p in self.player_information if p.find('b').text == 'Born').strip().split(', ')[0:2]
-        return dateparser.parse(month_day+', '+year)
+        return self.json['dateOfBirth']
 
     def _current_age(self):
-        return next((p.find('span').text.strip() for p in self.player_information if p.find('b').text == 'Current age'), None)
+        return self.json['age']
 
     def _major_teams(self):
         return next((p.text.replace('Major teams ','').split(', ') for p in self.player_information if p.find('b').text == 'Major teams'), None)
@@ -70,13 +90,13 @@ class Player(object):
         return next((p.find('span').text for p in self.player_information if p.find('b').text == 'Also known as'), None)
 
     def _playing_role(self):
-        return next((p.find('span').text for p in self.player_information if p.find('b').text == 'Playing role'), None)
+        return self.json['position']
 
     def _batting_style(self):
-        return next((p.find('span').text for p in self.player_information if p.find('b').text == 'Batting style'), None)
+        return next((x for x in self.json['style'] if x['type'] == 'batting'), None)
 
     def _bowling_style(self):
-        return next((p.find('span').text for p in self.player_information if p.find('b').text == 'Bowling style'), None)
+        return next((x for x in self.json['style'] if x['type'] == 'bowling'), None)
 
     def _batting_fielding_averages(self):
         headers = ['matches', 'innings', 'not_out', 'runs', 'high_score', 'batting_average', 'balls_faced', 'strike_rate', 'centuries', 'fifties', 'fours', 'sixes', 'catches', 'stumpings']
@@ -87,8 +107,8 @@ class Player(object):
         avg_starts = [x+1 for x in format_positions[:num_formats-1]]
         avg_finish = [x+14 for x in avg_starts]
         format_averages = [bat_field[x:y] for x,y in zip(avg_starts, avg_finish)]
-        combined = zip(formats, format_averages)
-        return [{x: zip(headers, y)} for x,y in combined]
+        combined = list(zip(formats, format_averages))
+        return [{x: list(zip(headers, y))} for x,y in combined]
 
     def _bowling_averages(self):
         headers = ['matches', 'innings', 'balls_delivered', 'runs', 'wickets', 'best_innings', 'best_match', 'bowling_average', 'economy', 'strike_rate', 'four_wickets', 'five_wickets', 'ten_wickets']
@@ -99,8 +119,8 @@ class Player(object):
         avg_starts = [x+1 for x in format_positions[:num_formats-1]]
         avg_finish = [x+13 for x in avg_starts]
         format_averages = [bowling[x:y] for x,y in zip(avg_starts, avg_finish)]
-        combined = zip(formats, format_averages)
-        return [{x: zip(headers, y)} for x,y in combined]
+        combined = list(zip(formats, format_averages))
+        return [{x: list(zip(headers, y))} for x,y in combined]
 
     def _debuts_and_lasts(self):
         return self.parsed_html.findAll('table', class_='engineTable')[2]
@@ -148,8 +168,12 @@ class Player(object):
     def _first_class_debut(self):
         first_class_debut = next((tr for tr in self._debuts_and_lasts().findAll('tr') if tr.find('b').text == 'First-class debut'), None)
         if first_class_debut:
-            url = 'http://www.espncricinfo.com'+first_class_debut.find('a')['href']
-            match_id = int(first_class_debut.find('a')['href'].split('/', 4)[4].split('.')[0])
+            if first_class_debut.find('a'):
+                url = 'http://www.espncricinfo.com'+first_class_debut.find('a')['href']
+                match_id = int(first_class_debut.find('a')['href'].split('/', 4)[4].split('.')[0])
+            else:
+                url = None
+                match_id = None
             title = first_class_debut.findAll('td')[1].text.replace(' scorecard','')
             return {'url': url, 'match_id': match_id, 'title': title}
         else:
@@ -168,8 +192,12 @@ class Player(object):
     def _list_a_debut(self):
         list_a_debut = next((tr for tr in self._debuts_and_lasts().findAll('tr') if tr.find('b').text == 'List A debut'), None)
         if list_a_debut:
-            url = 'http://www.espncricinfo.com'+list_a_debut.find('a')['href']
-            match_id = int(list_a_debut.find('a')['href'].split('/', 4)[4].split('.')[0])
+            if list_a_debut.find('a'):
+                url = 'http://www.espncricinfo.com'+list_a_debut.find('a')['href']
+                match_id = int(list_a_debut.find('a')['href'].split('/', 4)[4].split('.')[0])
+            else:
+                url = None
+                match_id = None
             title = list_a_debut.findAll('td')[1].text.replace(' scorecard','')
             return {'url': url, 'match_id': match_id, 'title': title}
         else:
@@ -226,5 +254,33 @@ class Player(object):
             return None
 
     def _recent_matches(self):
-        table = self.parsed_html.findAll('table', class_='engineTable')[3]
-        return [x.find('a')['href'].split('/', 4)[4].split('.')[0] for x in table.findAll('tr')[1:]]
+        try:
+            table = self.parsed_html.findAll('table', class_='engineTable')[3]
+            return [x.find('a')['href'].split('/', 4)[4].split('.')[0] for x in table.findAll('tr')[1:]]
+        except:
+            return None
+
+    def in_team_for_match(self, match_id):
+        m = Match(match_id)
+        if next((p for p in m.team_1_players if p['object_id'] == self.cricinfo_id), None) or next((p for p in m.team_2_players if p['object_id'] == self.cricinfo_id), None):
+            return True
+        else:
+            return False
+
+    def batting_for_match(self, match_id):
+        batting_stats = []
+        m = Match(match_id)
+        for innings in list(m.full_scorecard['innings'].keys()):
+            stats = next((x for x in m.full_scorecard['innings'][innings]['batsmen'] if x['href'] == self.url), None)
+            if stats:
+                batting_stats.append({ 'innings': innings, 'balls_faced': next((x['value'] for x in stats['stats'] if x['name'] == 'ballsFaced'), None), 'minutes': next((x['value'] for x in stats['stats'] if x['name'] == 'minutes'), None), 'runs': next((x['value'] for x in stats['stats'] if x['name'] == 'runs'), None), 'fours': next((x['value'] for x in stats['stats'] if x['name'] == 'fours'), None), 'sixes': next((x['value'] for x in stats['stats'] if x['name'] == 'sixes'), None), 'strike_rate': next((x['value'] for x in stats['stats'] if x['name'] == 'strikeRate'), None) })
+        return batting_stats
+
+    def bowling_for_match(self, match_id):
+        bowling_stats = []
+        m = Match(match_id)
+        for innings in list(m.full_scorecard['innings'].keys()):
+            stats = next((x for x in m.full_scorecard['innings'][innings]['bowlers'] if x['href'] == self.url), None)
+            if stats:
+                bowling_stats.append({ 'innings': innings, 'overs': next((x['value'] for x in stats['stats'] if x['name'] == 'overs')), 'maidens': next((x['value'] for x in stats['stats'] if x['name'] == 'maidens')), 'conceded': next((x['value'] for x in stats['stats'] if x['name'] == 'conceded')), 'wickets': next((x['value'] for x in stats['stats'] if x['name'] == 'wickets')), 'economy_rate': next((x['value'] for x in stats['stats'] if x['name'] == 'economyRate')), 'dots': next((x['value'] for x in stats['stats'] if x['name'] == 'dots'), None), 'fours_conceded': next((x['value'] for x in stats['stats'] if x['name'] == 'foursConceded'), None), 'sixes_conceded': next((x['value'] for x in stats['stats'] if x['name'] == 'sixesConceded'), None), 'wides': next((x['value'] for x in stats['stats'] if x['name'] == 'wides'), None), 'no_balls': next((x['value'] for x in stats['stats'] if x['name'] == 'noballs'), None)})
+        return bowling_stats
