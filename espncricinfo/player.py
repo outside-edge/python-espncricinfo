@@ -108,7 +108,8 @@ class Player(object):
         avg_finish = [x+14 for x in avg_starts]
         format_averages = [bat_field[x:y] for x,y in zip(avg_starts, avg_finish)]
         combined = list(zip(formats, format_averages))
-        return [{x: list(zip(headers, y))} for x,y in combined]
+        l = [{x: dict(zip(headers, y))} for x,y in combined]
+        return { k: v for d in l for k, v in d.items() }
 
     def _bowling_averages(self):
         headers = ['matches', 'innings', 'balls_delivered', 'runs', 'wickets', 'best_innings', 'best_match', 'bowling_average', 'economy', 'strike_rate', 'four_wickets', 'five_wickets', 'ten_wickets']
@@ -120,7 +121,8 @@ class Player(object):
         avg_finish = [x+13 for x in avg_starts]
         format_averages = [bowling[x:y] for x,y in zip(avg_starts, avg_finish)]
         combined = list(zip(formats, format_averages))
-        return [{x: list(zip(headers, y))} for x,y in combined]
+        l = [{x: dict(zip(headers, y))} for x,y in combined]
+        return { k: v for d in l for k, v in d.items() }
 
     def _debuts_and_lasts(self):
         return self.parsed_html.findAll('table', class_='engineTable')[2]
