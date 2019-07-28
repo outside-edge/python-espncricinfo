@@ -23,6 +23,7 @@ class Match(object):
             self.series_name = self._series_name()
             self.series_id = self._series_id()
             self.event_url = "http://core.espnuk.org/v2/sports/cricket/leagues/{0}/events/{1}".format(str(self.series_id), str(match_id))
+            self.details_url = self._details_url()
             self.officials = self._officials()
             self.current_summary = self._current_summary()
             self.present_datetime_local = self._present_datetime_local()
@@ -107,7 +108,7 @@ class Match(object):
 
     def get_comms_json(self):
         try:
-            text = self.html.find_all('script')[11].get_text().replace("\n", " ").replace('window.__INITIAL_STATE__ =','').replace('&dagger;','wk').replace('&amp;','').replace('wkts;','wkts,').replace('wkt;','wkt,').strip().replace('};', "}};").split('};')[0]
+            text = self.html.find_all('script')[13].get_text().replace("\n", " ").replace('window.__INITIAL_STATE__ =','').replace('&dagger;','wk').replace('&amp;','').replace('wkts;','wkts,').replace('wkt;','wkt,').strip().replace('};', "}};").split('};')[0]
             return json.loads(text)
         except:
             return None
@@ -118,8 +119,8 @@ class Match(object):
     def _legacy_scorecard_url(self):
         return "http://static.espncricinfo.com"+self.match_json()['legacy_url']
 
-    def details_url(self, page=1):
-        return self.event_url+"/competitions/{0}/details?pagesize=1000&page={1}".format(str(match_id), str(page))
+    def _details_url(self, page=1, number=1000):
+        return self.event_url+"/competitions/{0}/details?page_size={1}&page={2}".format(str(self.match_id), str(number), str(page))
 
     def __str__(self):
         return self.json['description']
@@ -181,7 +182,7 @@ class Match(object):
             return True
 
     def _rain_rule(self):
-        if self.match_json()['rain_rule'] == "1":
+        if 'rain_rule' in self.match_json() and self.match_json()['rain_rule'] == "1":
             return self.match_json()['rain_rule_name']
         else:
             return None
@@ -190,19 +191,34 @@ class Match(object):
         return self.match_json()['start_date_raw']
 
     def _continent(self):
-        return self.match_json()['continent_name']
+        if 'continent_name' in self.match_json():
+            return self.match_json()['continent_name']
+        else:
+            return None
 
     def _town_area(self):
-        return self.match_json()['town_area']
+        if 'town_area' in self.match_json():
+            return self.match_json()['town_area']
+        else:
+            return None
 
     def _town_name(self):
-        return self.match_json()['town_name']
+        if 'town_name' in self.match_json():
+            return self.match_json()['town_name']
+        else:
+            return None
 
     def _town_id(self):
-        return self.match_json()['town_id']
+        if 'town_id' in self.match_json():
+            return self.match_json()['town_id']
+        else:
+            return None
 
     def _weather_location_code(self):
-        return self.match_json()['weather_location_code']
+        if 'weather_location_code' in self.match_json():
+            return self.match_json()['weather_location_code']
+        else:
+            return None
 
     def _match_title(self):
         return self.match_json()['cms_match_title']
@@ -220,7 +236,7 @@ class Match(object):
         return self.match_json()['floodlit_name']
 
     def _followon(self):
-        if self.match_json()['followon'] == '1':
+        if 'followon' in self.match_json() and self.match_json()['followon'] == '1':
             return True
         else:
             return False
@@ -271,22 +287,34 @@ class Match(object):
         return self._team_1()['team_abbreviation']
 
     def _team_1_players(self):
-        return self._team_1()['player']
+        if 'player' in self._team_1():
+            return self._team_1()['player']
+        else:
+            return []
 
     def _team_1_innings(self):
-        return [inn for inn in self.json['innings'] if inn['batting_team_id'] == self._team_1_id()][0]
+        if self.json['innings'] == []:
+            return None
+        else:
+            return [inn for inn in self.json['innings'] if inn['batting_team_id'] == self._team_1_id()][0]
 
     def _team_1_run_rate(self):
-        if self._team_1_innings()['run_rate'] == None:
+        if self.json['innings'] == []:
             return None
         else:
             return float(self._team_1_innings()['run_rate'])
 
     def _team_1_overs_batted(self):
-        return float(self._team_1_innings()['overs'])
+        if self.json['innings'] == []:
+            return None
+        else:
+            return float(self._team_1_innings()['overs'])
 
     def _team_1_batting_result(self):
-        return self._team_1_innings()['event_name']
+        if self.json['innings'] == []:
+            return None
+        else:
+            return self._team_1_innings()['event_name']
 
     def _team_2(self):
         return self.json['team'][1]
@@ -298,22 +326,34 @@ class Match(object):
         return self._team_2()['team_abbreviation']
 
     def _team_2_players(self):
-        return self._team_2()['player']
+        if 'player' in self._team_2():
+            return self._team_2()['player']
+        else:
+            return []
 
     def _team_2_innings(self):
-        return [inn for inn in self.json['innings'] if inn['batting_team_id'] == self._team_2_id()][0]
+        if self.json['innings'] == []:
+            return None
+        else:
+            return [inn for inn in self.json['innings'] if inn['batting_team_id'] == self._team_2_id()][0]
 
     def _team_2_run_rate(self):
-        if self._team_2_innings()['run_rate'] == None:
+        if self.json['innings'] == []:
             return None
         else:
             return float(self._team_2_innings()['run_rate'])
 
     def _team_2_overs_batted(self):
-        return float(self._team_2_innings()['overs'])
+        if self.json['innings'] == []:
+            return None
+        else:
+            return float(self._team_2_innings()['overs'])
 
     def _team_2_batting_result(self):
-        return self._team_2_innings()['event_name']
+        if self.json['innings'] == []:
+            return None
+        else:
+            return self._team_2_innings()['event_name']
 
     def _home_team(self):
         if self._team_1_id() == self.match_json()['home_team_id']:
