@@ -299,7 +299,7 @@ class Player(object):
 
     def _recent_matches(self):
         try:
-            table = self.parsed_html.findAll('table', class_='engineTable')[3]
+            table = self.parsed_html.findAll('table', class_='engineTable')[-1]
             return [x.find('a')['href'].split('/', 4)[4].split('.')[0] for x in table.findAll('tr')[1:]]
         except:
             return None
