@@ -160,8 +160,7 @@ class Match(object):
 
     # live matches only
     def _current_summary(self):
-        if 'current_summary' in self.match_json().keys():
-            return self.match_json()['current_summary']
+        return self.match_json().get('current_summary')
 
     def _present_datetime_local(self):
         return self.match_json()['present_datetime_local']
@@ -182,7 +181,7 @@ class Match(object):
             return True
 
     def _rain_rule(self):
-        if 'rain_rule' in self.match_json() and self.match_json()['rain_rule'] == "1":
+        if self.match_json().get('rain_rule') == "1":
             return self.match_json()['rain_rule_name']
         else:
             return None
@@ -191,34 +190,19 @@ class Match(object):
         return self.match_json()['start_date_raw']
 
     def _continent(self):
-        if 'continent_name' in self.match_json():
-            return self.match_json()['continent_name']
-        else:
-            return None
+        return self.match_json().get('continent_name')
 
     def _town_area(self):
-        if 'town_area' in self.match_json():
-            return self.match_json()['town_area']
-        else:
-            return None
+        return self.match_json().get('town_area')
 
     def _town_name(self):
-        if 'town_name' in self.match_json():
-            return self.match_json()['town_name']
-        else:
-            return None
+        return self.match_json().get('town_name')
 
     def _town_id(self):
-        if 'town_id' in self.match_json():
-            return self.match_json()['town_id']
-        else:
-            return None
+        return self.match_json().get('town_id')
 
     def _weather_location_code(self):
-        if 'weather_location_code' in self.match_json():
-            return self.match_json()['weather_location_code']
-        else:
-            return None
+        return self.match_json().get('weather_location_code')
 
     def _match_title(self):
         return self.match_json()['cms_match_title']
@@ -236,7 +220,7 @@ class Match(object):
         return self.match_json()['floodlit_name']
 
     def _followon(self):
-        if 'followon' in self.match_json() and self.match_json()['followon'] == '1':
+        if self.match_json().get('followon') == '1':
             return True
         else:
             return False
@@ -272,10 +256,7 @@ class Match(object):
             return None
 
     def _latest_innings_fow(self):
-        if 'fow' in self.json['centre'].keys():
-            return self.json['centre']['fow']
-        else:
-            return None
+        return self.json['centre'].get('fow')
 
     def _team_1(self):
         return self.json['team'][0]
@@ -287,11 +268,8 @@ class Match(object):
         return self._team_1()['team_abbreviation']
 
     def _team_1_players(self):
-        if 'player' in self._team_1():
-            return self._team_1()['player']
-        else:
-            return []
-
+        return self._team_1().get('player', [])
+        
     def _team_1_innings(self):
         if self.json['innings'] == []:
             return None
@@ -326,11 +304,8 @@ class Match(object):
         return self._team_2()['team_abbreviation']
 
     def _team_2_players(self):
-        if 'player' in self._team_2():
-            return self._team_2()['player']
-        else:
-            return []
-
+        return self._team_2().get('player', [])
+ 
     def _team_2_innings(self):
         if self.json['innings'] == []:
             return None
