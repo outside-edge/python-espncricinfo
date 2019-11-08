@@ -105,7 +105,7 @@ class Player(object):
             num_formats = int(len(bat_field)/15)
             format_positions = [15*x for x in range(num_formats)]
             formats = [bat_field[x] for x in format_positions]
-            avg_starts = [x+1 for x in format_positions[:num_formats-1]]
+            avg_starts = [x+1 for x in format_positions[:num_formats]]
             avg_finish = [x+14 for x in avg_starts]
             format_averages = [bat_field[x:y] for x,y in zip(avg_starts, avg_finish)]
             combined = list(zip(formats, format_averages))
@@ -121,7 +121,7 @@ class Player(object):
             num_formats = int(len(bowling)/14)
             format_positions = [14*x for x in range(num_formats)]
             formats = [bowling[x] for x in format_positions]
-            avg_starts = [x+1 for x in format_positions[:num_formats-1]]
+            avg_starts = [x+1 for x in format_positions[:num_formats]]
             avg_finish = [x+13 for x in avg_starts]
             format_averages = [bowling[x:y] for x,y in zip(avg_starts, avg_finish)]
             combined = list(zip(formats, format_averages))
