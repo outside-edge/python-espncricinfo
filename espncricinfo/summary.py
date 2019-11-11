@@ -1,22 +1,29 @@
 import requests
-from bs4 import BeautifulSoup
+from xml.etree import ElementTree as ET
 
 class Summary(object):
 
     def __init__(self):
         self.url = "http://static.cricinfo.com/rss/livescores.xml"
-        self.xml = self.get_xml()
+        self.rss = self.get_rss()
         
+        self.matches = {}
         self.match_ids = []
-        self.match_urls = []
 
-        for g in self.xml.findAll('guid'):
-            self.match_ids.append(g.text.strip().split('/')[-1].split('.')[0])
-            self.match_urls.append(g.text.strip())
+        if len(self.rss) > 0:
 
-    def get_xml(self):
+            for i in self.rss[0].findall('item'):
+                desc = i.find('description').text
+                guid = i.find('guid').text
+                match_id = guid.split('/')[-1].split('.')[0]
+                self.matches[match_id] = {'description' : desc, 'url' : guid}
+        
+            self.match_ids = list(self.matches.keys())
+
+    def get_rss(self):
+        
         r = requests.get(self.url)
         if r.ok:
-            return BeautifulSoup(r.text)
+            return ET.fromstring(r.content)
         else:
             return None
