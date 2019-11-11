@@ -1,18 +1,22 @@
 import requests
+from bs4 import BeautifulSoup
 
 class Summary(object):
 
     def __init__(self):
-        self.url = "http://www.espncricinfo.com/netstorage/summary.json"
-        self.json = self.get_json()
-        self.match_ids = self.json['matches'].keys()
-        self.all_matches = self.json['matches'].values()
+        self.url = "http://static.cricinfo.com/rss/livescores.xml"
+        self.xml = self.get_xml()
+        
+        self.match_ids = []
+        self.match_urls = []
 
-    def get_json(self):
+        for g in self.xml.findAll('guid'):
+            self.match_ids.append(g.text.strip().split('/')[-1].split('.')[0])
+            self.match_urls.append(g.text.strip())
+
+    def get_xml(self):
         r = requests.get(self.url)
-        return r.json()
-
-    def match(self, id):
-        m = self.json['matches'][id]
-        m['url'] = "http://www.espncricinfo.com"+m['url']
-        return m
+        if r.ok:
+            return BeautifulSoup(r.text)
+        else:
+            return None
