@@ -12,6 +12,15 @@ class MatchNotFoundError(TypeError):
     pass
 
 class PlayerNotFoundError(TypeError):
+    """
+    Exception raised if a player_id is not valid or does not exist.
+    """
+    pass
+
+class GroundNotFoundError(TypeError):
+    """
+    Exception raised if a ground_id is not valid or does not exist.
+    """
     pass
 
 class NoScorecardError(TypeError):
