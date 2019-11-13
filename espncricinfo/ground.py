@@ -31,6 +31,12 @@ class Ground(object):
             self.end_names = self._end_names()
             self.home_team = self._home_team()
             self.other_sports = self._other_sports()
+            self.first_test = self._first_test()
+            self.last_test = self._last_test()
+            self.first_odi = self._first_odi()
+            self.last_odi = self._last_odi()
+            self.first_t20i = self._first_t20i()
+            self.last_t20i = self._last_t20i()
 
     def get_json(self):
         r = requests.get(self.json_url)
@@ -80,17 +86,81 @@ class Ground(object):
             soup = BeautifulSoup(r.text, 'html.parser').find('div', id= 'ciHomeContentlhs')
             return soup
 
+    def _parse_ground_stats(self):
+        return self.parsed_html.find('div', id = 'stats')
+
+    def _parse_ground_records(self):
+        return self.parsed_html.find('div', id = 'recs')
+
     def _established(self):
-        return self.parsed_html.find('div', id = 'stats').find('label', text = 'Established ').next_sibling
+        t = self._parse_ground_stats().find('label', text = 'Established ')
+        if t:
+            return t.next_sibling
 
     def _floodlights_added(self):
-        return self.parsed_html.find('div', id = 'stats').find('label', text = 'Floodlights ').next_sibling
+        t = self._parse_ground_stats().find('label', text = 'Floodlights ')
+        if t:
+            return t.next_sibling
 
     def _end_names(self):
-        return self.parsed_html.find('div', id = 'stats').find('label', text = 'End names ').next_sibling
+        t = self._parse_ground_stats().find('label', text = 'End names ')
+        if t:
+            return t.next_sibling
 
     def _home_team(self):
-        return self.parsed_html.find('div', id = 'stats').find('label', text = 'Home team ').next_sibling
+        t = self._parse_ground_stats().find('label', text = 'Home team ')
+        if t:
+            return t.next_sibling
 
     def _other_sports(self):
-        return self.parsed_html.find('div', id = 'stats').find('label', text = 'Other sports ').next_sibling
+        t = self._parse_ground_stats().find('label', text = 'Other sports ')
+        if t:
+            return t.next_sibling
+
+    def _first_test(self):
+        for tr in self._parse_ground_records().find_all('tr'):
+            if tr.find('label', text = 'First Test'):
+                url = 'http://www.espncricinfo.com' + tr.find('a')['href']
+                title = tr.find_all('td')[1].text
+                match_id = int(url.split('/')[-1].split('.')[0])
+                return {'url': url, 'match_id': match_id, 'title': title}
+
+    def _last_test(self):
+        for tr in self._parse_ground_records().find_all('tr'):
+            if tr.find('label', text = 'Last Test'):
+                url = 'http://www.espncricinfo.com' + tr.find('a')['href']
+                title = tr.find_all('td')[1].text
+                match_id = int(url.split('/')[-1].split('.')[0])
+                return {'url': url, 'match_id': match_id, 'title': title}
+
+    def _first_odi(self):
+        for tr in self._parse_ground_records().find_all('tr'):
+            if tr.find('label', text = 'First ODI'):
+                url = 'http://www.espncricinfo.com' + tr.find('a')['href']
+                title = tr.find_all('td')[1].text
+                match_id = int(url.split('/')[-1].split('.')[0])
+                return {'url': url, 'match_id': match_id, 'title': title}
+
+    def _last_odi(self):
+        for tr in self._parse_ground_records().find_all('tr'):
+            if tr.find('label', text = 'Last ODI'):
+                url = 'http://www.espncricinfo.com' + tr.find('a')['href']
+                title = tr.find_all('td')[1].text
+                match_id = int(url.split('/')[-1].split('.')[0])
+                return {'url': url, 'match_id': match_id, 'title': title}
+
+    def _first_t20i(self):
+        for tr in self._parse_ground_records().find_all('tr'):
+            if tr.find('label', text = 'First T20I'):
+                url = 'http://www.espncricinfo.com' + tr.find('a')['href']
+                title = tr.find_all('td')[1].text
+                match_id = int(url.split('/')[-1].split('.')[0])
+                return {'url': url, 'match_id': match_id, 'title': title}
+
+    def _last_t20i(self):
+        for tr in self._parse_ground_records().find_all('tr'):
+            if tr.find('label', text = 'Last T20I'):
+                url = 'http://www.espncricinfo.com' + tr.find('a')['href']
+                title = tr.find_all('td')[1].text
+                match_id = int(url.split('/')[-1].split('.')[0])
+                return {'url': url, 'match_id': match_id, 'title': title}
