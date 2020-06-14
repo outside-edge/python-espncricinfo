@@ -380,10 +380,24 @@ class Match(object):
             return self._team_2_id()
 
     def _toss_decision(self):
-        return self.match_json()['toss_decision']
+        if self.match_json()['toss_decision'] == '':
+            if self.innings_list[0]['team_id'] == self.toss_winner:
+                decision = '1'
+            else:
+                decision = '2'
+        else:
+            decision = self.match_json()['toss_decision']
+        return decision
 
     def _toss_decision_name(self):
-        return self.match_json()['toss_decision_name']
+        if self.match_json()['toss_decision_name'] == '':
+            if self.innings_list[0]['team_id'] == self.toss_winner:
+                decision_name = 'bat'
+            else:
+                decision_name = 'bowl'
+        else:
+            decision_name = self.match_json()['toss_decision_name']
+        return decision_name
 
     def _toss_choice_team_id(self):
         return self.match_json()['toss_choice_team_id']
