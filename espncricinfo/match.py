@@ -7,8 +7,8 @@ class Match(object):
 
     def __init__(self, match_id):
         self.match_id = match_id
-        self.match_url = "http://www.espncricinfo.com/matches/engine/match/{0}.html".format(str(match_id))
-        self.json_url = "http://www.espncricinfo.com/matches/engine/match/{0}.json".format(str(match_id))
+        self.match_url = "https://www.espncricinfo.com/matches/engine/match/{0}.html".format(str(match_id))
+        self.json_url = "https://www.espncricinfo.com/matches/engine/match/{0}.json".format(str(match_id))
         self.json = self.get_json()
         self.html = self.get_html()
         self.comms_json = self.get_comms_json()
@@ -22,7 +22,7 @@ class Match(object):
             self.series = self._series()
             self.series_name = self._series_name()
             self.series_id = self._series_id()
-            self.event_url = "http://core.espnuk.org/v2/sports/cricket/leagues/{0}/events/{1}".format(str(self.series_id), str(match_id))
+            self.event_url = "https://core.espnuk.org/v2/sports/cricket/leagues/{0}/events/{1}".format(str(self.series_id), str(match_id))
             self.details_url = self._details_url()
             self.officials = self._officials()
             self.current_summary = self._current_summary()
