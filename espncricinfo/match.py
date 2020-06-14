@@ -114,10 +114,10 @@ class Match(object):
             return None
 
     def _espn_api_url(self):
-        return "http://site.api.espn.com/apis/site/v2/sports/cricket/{0}/summary?event={1}".format(self.series_id, self.match_id)
+        return "https://site.api.espn.com/apis/site/v2/sports/cricket/{0}/summary?event={1}".format(self.series_id, self.match_id)
 
     def _legacy_scorecard_url(self):
-        return "http://static.espncricinfo.com"+self.match_json()['legacy_url']
+        return "https://static.espncricinfo.com"+self.match_json()['legacy_url']
 
     def _details_url(self, page=1, number=1000):
         return self.event_url+"/competitions/{0}/details?page_size={1}&page={2}".format(str(self.match_id), str(number), str(page))
@@ -269,7 +269,7 @@ class Match(object):
 
     def _team_1_players(self):
         return self._team_1().get('player', [])
-        
+
     def _team_1_innings(self):
         if self.json['innings'] == []:
             return None
@@ -305,7 +305,7 @@ class Match(object):
 
     def _team_2_players(self):
         return self._team_2().get('player', [])
- 
+
     def _team_2_innings(self):
         if self.json['innings'] == []:
             return None
@@ -475,9 +475,9 @@ class Match(object):
     @staticmethod
     def get_recent_matches(date=None):
         if date:
-            url = "http://www.espncricinfo.com/ci/engine/match/index.html?date=%sview=week" % date
+            url = "https://www.espncricinfo.com/ci/engine/match/index.html?date=%sview=week" % date
         else:
-            url = "http://www.espncricinfo.com/ci/engine/match/index.html?view=week"
+            url = "https://www.espncricinfo.com/ci/engine/match/index.html?view=week"
         r = requests.get(url)
         soup = BeautifulSoup(r.text, 'html.parser')
         return [x['href'].split('/',4)[4].split('.')[0] for x in soup.findAll('a', href=True, text='Scorecard')]
