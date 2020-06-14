@@ -8,7 +8,7 @@ The splendid espncricinfo.com site not only provides [individual HTML pages](htt
 
 Disclaimer: This library is not intended for commercial use and neither it nor its creator has any affiliation with ESPNCricInfo. The [LICENSE](LICENSE.txt) for this library applies only to the code, not to the data.
 
-The current version of this library is 0.4.1. It is very much a work in progress, and bug reports and feature requests are welcomed.
+The current version of this library is 0.5.0. It is very much a work in progress, and bug reports and feature requests are welcomed.
 
 ### Installation
 
