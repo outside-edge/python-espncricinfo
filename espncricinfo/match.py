@@ -78,13 +78,8 @@ class Match(object):
             self.espn_api_url = self._espn_api_url()
             # from comms_json
             self.rosters = self._rosters()
-            self.scorecard_summary = self._scorecard_summary()
-            self.full_scorecard = self._full_scorecard()
-            self.game_state = self._game_state()
             self.all_innings = self._all_innings()
-            self.all_partnerships = self._all_partnerships()
             self.close_of_play = self._close_of_play()
-            self.hawkeye_source = self._hawkeye_source()
 
 
     def get_json(self):
@@ -108,7 +103,7 @@ class Match(object):
 
     def get_comms_json(self):
         try:
-            text = self.html.find_all('script')[13].get_text().replace("\n", " ").replace('window.__INITIAL_STATE__ =','').replace('&dagger;','wk').replace('&amp;','').replace('wkts;','wkts,').replace('wkt;','wkt,').strip().replace('};', "}};").split('};')[0]
+            text = self.html.find_all('script')[13].get_text()
             return json.loads(text)
         except:
             return None
@@ -356,7 +351,7 @@ class Match(object):
 
     def _toss_decision(self):
         if self.match_json()['toss_decision'] == '':
-            if self.innings_list[0]['team_id'] == self.toss_winner:
+            if self.innings[0]['batting_team_id'] == self.toss_winner:
                 decision = '1'
             else:
                 decision = '2'
@@ -366,7 +361,7 @@ class Match(object):
 
     def _toss_decision_name(self):
         if self.match_json()['toss_decision_name'] == '':
-            if self.innings_list[0]['team_id'] == self.toss_winner:
+            if self.innings[0]['batting_team_id'] == self.toss_winner:
                 decision_name = 'bat'
             else:
                 decision_name = 'bowl'
@@ -384,91 +379,49 @@ class Match(object):
 
     def _rosters(self):
         if self.comms_json:
-            return self.comms_json['gamePackage']['rosters']
-        else:
-            return None
-
-    def _scorecard_summary(self):
-        if self.comms_json:
-            return self.comms_json['gamePackage']['scorecardSummary']
-        else:
-            return None
-
-    def _full_scorecard(self):
-        if self.comms_json:
-            return self.comms_json['gamePackage']['scorecard']
-        else:
-            return None
-
-    def _game_state(self):
-        if self.comms_json:
-            return self.comms_json['gamePackage']['gameStateClass']
+            return self.comms_json['props']['pageProps']['data']['content']['teams']
         else:
             return None
 
     def _all_innings(self):
         if self.comms_json:
-            return self.comms_json['gamePackage']['allInnings']
-        else:
-            return None
-
-    def _all_partnerships(self):
-        if self.comms_json:
-            return self.comms_json['gamePackage']['statistics']['allPartnerships']
+            return self.comms_json['props']['pageProps']['data']['content']['innings']
         else:
             return None
 
     def _close_of_play(self):
         if self.comms_json:
-            return self.comms_json['gamePackage']['closeOfPlay']['cop']
-        else:
-            return None
-
-    def _hawkeye_source(self):
-        if self.comms_json:
-            return self.comms_json['gamePackage']['hawkEye']['hawkEyeSrc']
+            return self.comms_json['props']['pageProps']['data']['content']['closePlay']
         else:
             return None
 
     def batsmen(self, innings):
         if self.comms_json:
-            return self.comms_json['gamePackage']['scorecard']['innings'][str(innings)]['batsmen']
+            return self.comms_json['props']['pageProps']['data']['content']['innings'][str(innings)]['batsmen']
         else:
             return None
 
     def bowlers(self, innings):
         if self.comms_json:
-            return self.comms_json['gamePackage']['scorecard']['innings'][str(innings)]['bowlers']
+            return self.comms_json['props']['pageProps']['data']['content']['innings'][str(innings)]['bowlers']
         else:
             return None
 
     def did_not_bat(self, innings):
         if self.comms_json:
-            return self.comms_json['gamePackage']['scorecard']['innings'][str(innings)]['didNotBat']
-        else:
-            return None
-
-    def absent(self, innings):
-        if self.comms_json:
-            return self.comms_json['gamePackage']['scorecard']['innings'][str(innings)]['absent']
+            return self.comms_json['props']['pageProps']['data']['content']['innings'][str(innings)]['didNotBat']
         else:
             return None
 
     def extras(self, innings):
         if self.comms_json:
-            return self.comms_json['gamePackage']['scorecard']['innings'][str(innings)]['extras']
+            return self.comms_json['props']['pageProps']['data']['content']['innings'][str(innings)]['extras']
         else:
             return None
 
     def fows(self, innings):
         if self.comms_json:
-            return self.comms_json['gamePackage']['scorecard']['innings'][str(innings)]['fows']
-        else:
-            return None
-
-    def partnerships(self, innings):
-        if self.comms_json:
-            return self.comms_json['gamePackage']['statistics']['pshipByInnings'][int(innings)-1]['data']
+            return self.comms_json['props']['pageProps']['data']['content']['innings'][str(innings)]['fallOfWickets']
         else:
             return None
 
