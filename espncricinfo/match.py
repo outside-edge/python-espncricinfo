@@ -360,7 +360,7 @@ class Match(object):
         return decision
 
     def _toss_decision_name(self):
-        if self.match_json()['toss_decision_name'] == '':
+        if self.match_json()['toss_decision_name'] == '' and len(self.innings) > 0:
             if self.innings[0]['batting_team_id'] == self.toss_winner:
                 decision_name = 'bat'
             else:
