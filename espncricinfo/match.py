@@ -350,7 +350,7 @@ class Match(object):
             return self._team_2_id()
 
     def _toss_decision(self):
-        if self.match_json()['toss_decision'] == '':
+        if self.match_json()['toss_decision'] == '' and len(self.innings) > 0:
             if self.innings[0]['batting_team_id'] == self.toss_winner:
                 decision = '1'
             else:
