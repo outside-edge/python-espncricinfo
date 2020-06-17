@@ -266,28 +266,28 @@ class Match(object):
         return self._team_1().get('player', [])
 
     def _team_1_innings(self):
-        if self.json['innings'] == []:
-            return None
-        else:
+        try:
             return [inn for inn in self.json['innings'] if inn['batting_team_id'] == self._team_1_id()][0]
+        except:
+            return None
 
     def _team_1_run_rate(self):
-        if self.json['innings'] == []:
-            return None
-        else:
+        try:
             return float(self._team_1_innings()['run_rate'])
+        except:
+            return None
 
     def _team_1_overs_batted(self):
-        if self.json['innings'] == []:
-            return None
-        else:
+        try:
             return float(self._team_1_innings()['overs'])
+        except:
+            return None
 
     def _team_1_batting_result(self):
-        if self.json['innings'] == []:
-            return None
-        else:
+        try:
             return self._team_1_innings()['event_name']
+        except:
+            return None
 
     def _team_2(self):
         return self.json['team'][1]
@@ -302,28 +302,28 @@ class Match(object):
         return self._team_2().get('player', [])
 
     def _team_2_innings(self):
-        if self.json['innings'] == []:
-            return None
-        else:
+        try:
             return [inn for inn in self.json['innings'] if inn['batting_team_id'] == self._team_2_id()][0]
+        except:
+            return None
 
     def _team_2_run_rate(self):
-        if self.json['innings'] == []:
-            return None
-        else:
+        try:
             return float(self._team_2_innings()['run_rate'])
+        except:
+            return None
 
     def _team_2_overs_batted(self):
-        if self.json['innings'] == []:
-            return None
-        else:
+        try:
             return float(self._team_2_innings()['overs'])
+        except:
+            return None
 
     def _team_2_batting_result(self):
-        if self.json['innings'] == []:
-            return None
-        else:
+        try:
             return self._team_2_innings()['event_name']
+        except:
+            return None
 
     def _home_team(self):
         if self._team_1_id() == self.match_json()['home_team_id']:
