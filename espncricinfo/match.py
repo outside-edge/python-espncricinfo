@@ -221,7 +221,10 @@ class Match(object):
             return False
 
     def _scheduled_overs(self):
-        return int(self.match_json()['scheduled_overs'])
+        try:
+            return int(self.match_json()['scheduled_overs'])
+        except:
+            return None
 
     def _innings_list(self):
         try:

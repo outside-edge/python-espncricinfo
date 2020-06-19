@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(name="python-espncricinfo",
-      version="0.5.4",
+      version="0.5.5",
       description="ESPNCricInfo API client",
       license="MIT",
       install_requires=["requests", "bs4", "dateparser"],
