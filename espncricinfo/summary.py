@@ -19,7 +19,7 @@ class Summary(object):
         else:
             return BeautifulSoup(r.text, 'html.parser')
 
-    def json(self):
+    def summary_json(self):
         try:
             text = self.html.find_all('script')[13].contents[0]
             return json.loads(text)
@@ -27,7 +27,7 @@ class Summary(object):
             return None
 
     def _match_ids(self):
-        matches = [x['id'] for x in self.json['props']['pageProps']['data']['content']['leagueEvents'][0]['matchEvents']]
+        matches = [x['id'] for x in self.summary_json()['props']['pageProps']['data']['content']['leagueEvents'][0]['matchEvents']]
         return matches
 
     def _build_matches(self):

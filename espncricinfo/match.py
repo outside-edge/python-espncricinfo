@@ -82,6 +82,12 @@ class Match(object):
             self.close_of_play = self._close_of_play()
 
 
+    def __str__(self):
+        return self.description
+
+    def __repr__(self):
+        return (f'{self.__class__.__name__}('f'{self.match_id!r})')
+
     def get_json(self):
         r = requests.get(self.json_url)
         if r.status_code == 404:
@@ -381,51 +387,51 @@ class Match(object):
     # comms_json methods
 
     def _rosters(self):
-        if self.comms_json:
+        try:
             return self.comms_json['props']['pageProps']['data']['content']['teams']
-        else:
+        except:
             return None
 
     def _all_innings(self):
-        if self.comms_json:
+        try:
             return self.comms_json['props']['pageProps']['data']['content']['innings']
-        else:
+        except:
             return None
 
     def _close_of_play(self):
-        if self.comms_json:
+        try:
             return self.comms_json['props']['pageProps']['data']['content']['closePlay']
-        else:
+        except:
             return None
 
     def batsmen(self, innings):
-        if self.comms_json:
+        try:
             return self.comms_json['props']['pageProps']['data']['content']['innings'][str(innings)]['batsmen']
-        else:
+        except:
             return None
 
     def bowlers(self, innings):
-        if self.comms_json:
+        try:
             return self.comms_json['props']['pageProps']['data']['content']['innings'][str(innings)]['bowlers']
-        else:
+        except:
             return None
 
     def did_not_bat(self, innings):
-        if self.comms_json:
+        try:
             return self.comms_json['props']['pageProps']['data']['content']['innings'][str(innings)]['didNotBat']
-        else:
+        except:
             return None
 
     def extras(self, innings):
-        if self.comms_json:
+        try:
             return self.comms_json['props']['pageProps']['data']['content']['innings'][str(innings)]['extras']
-        else:
+        except:
             return None
 
     def fows(self, innings):
-        if self.comms_json:
+        try:
             return self.comms_json['props']['pageProps']['data']['content']['innings'][str(innings)]['fallOfWickets']
-        else:
+        except:
             return None
 
     @staticmethod
