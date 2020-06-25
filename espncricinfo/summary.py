@@ -27,7 +27,7 @@ class Summary(object):
             return None
 
     def _match_ids(self):
-        matches = self.json['props']['pageProps']['data']['content']['leagueEvents'][0]['matchEvents']
+        matches = [x['id'] for x in self.json['props']['pageProps']['data']['content']['leagueEvents'][0]['matchEvents']]
         return matches
 
     def _build_matches(self):
