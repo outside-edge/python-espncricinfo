@@ -109,7 +109,7 @@ class Match(object):
 
     def get_comms_json(self):
         try:
-            text = self.html.find_all('script')[13].string
+            text = self.html.find_all('script')[15].string
             return json.loads(text)
         except:
             return None
