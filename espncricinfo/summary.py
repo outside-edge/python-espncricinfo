@@ -21,7 +21,7 @@ class Summary(object):
 
     def summary_json(self):
         try:
-            text = self.html.find_all('script')[13].contents[0]
+            text = self.html.find_all('script')[15].contents[0]
             return json.loads(text)
         except:
             return None
