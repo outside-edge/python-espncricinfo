@@ -8,7 +8,7 @@ class Player(object):
 
     def __init__(self, player_id):
         self.url = "https://www.espncricinfo.com/ci/content/player/{0}.html".format(str(player_id))
-        self.json_url = "https://core.espnuk.org/v2/sports/cricket/athletes/{0}".format(str(player_id))
+        self.json_url = "http://core.espnuk.org/v2/sports/cricket/athletes/{0}".format(str(player_id))
         self.parsed_html = self.get_html()
         self.json = self.get_json()
         self.player_information = self._parse_player_information()
