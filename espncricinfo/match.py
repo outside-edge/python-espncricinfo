@@ -107,6 +107,9 @@ class Match(object):
     def match_json(self):
         return self.json['match']
 
+    def innings_comms_url(self, innings=1, page=1):
+        return f"https://hsapi.espncricinfo.com/v1/pages/match/comments?lang=en&leagueId={self.series_id}&eventId={self.match_id}&period={innings}&page={page}&filter=full&liveTest=false"
+
     def get_comms_json(self):
         try:
             text = self.html.find_all('script')[15].string
