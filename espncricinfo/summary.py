@@ -21,13 +21,13 @@ class Summary(object):
 
     def summary_json(self):
         try:
-            text = self.html.find_all('script')[15].contents[0]
+            text = self.html.find_all('script')[14].contents[0]
             return json.loads(text)
         except:
             return None
 
     def _match_ids(self):
-        matches = [x['id'] for x in self.summary_json()['props']['pageProps']['data']['content']['leagueEvents'][0]['matchEvents']]
+        matches = [x['objectId'] for x in self.summary_json()['props']['pageProps']['data']['pageData']['content']['matches']]
         return matches
 
     def _build_matches(self):
