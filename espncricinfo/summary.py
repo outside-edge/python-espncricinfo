@@ -31,11 +31,4 @@ class Summary(object):
         return matches
 
     def _build_matches(self):
-        #matches = []
-        #for m in self.match_ids:
-        #    try:
-        #        matches.append(Match(m))
-        #    except:
-        #        matches.append(m)
-        #return matches
         return [Match(m) for m in self.match_ids]
