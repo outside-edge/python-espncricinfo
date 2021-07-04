@@ -1,5 +1,4 @@
 import requests
-import grequests
 from bs4 import BeautifulSoup
 from espncricinfo.exceptions import MatchNotFoundError, NoSeriesError
 
@@ -31,22 +30,6 @@ class Series(object):
             raise "Not Found"
         else:
             return r.json()
-
-    def get_events_for_season(self, season):
-        responses = []
-        season_events = []
-        season_events_url = self.seasons_url+"/{0}/events".format(str(season))
-        season_events_json = self.get_json(season_events_url)
-        if season_events_json:
-            rs = (grequests.get(event['$ref']) for event in season_events_json['items'])
-            responses = grequests.map(rs)
-            for response in responses:
-                event_json = response.json()
-                venue_json = self.get_json(event_json['venues'][0]['$ref'])
-                season_events.append({"url": event_json['$ref'], "match_id": event_json['id'], "class": event_json['competitions'][0]['class']['generalClassCard'], "date": event_json['date'], "description": event_json['shortDescription'], "venue_url": event_json['venues'][0]['$ref'], "venue": venue_json['fullName']})
-            return season_events
-        else:
-            return None
 
     def __str__(self):
         return self.name
