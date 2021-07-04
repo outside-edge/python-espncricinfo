@@ -80,7 +80,6 @@ class Match(object):
                 # from comms_json
                 self.rosters = self._rosters()
                 self.all_innings = self._all_innings()
-                self.close_of_play = self._close_of_play()
 
 
     def __str__(self):
@@ -392,49 +391,37 @@ class Match(object):
 
     def _rosters(self):
         try:
-            return self.comms_json['props']['pageProps']['data']['content']['teams']
+            return self.comms_json['props']['pageProps']['data']['pageData']['content']['matchPlayers']
         except:
             return None
 
     def _all_innings(self):
         try:
-            return self.comms_json['props']['pageProps']['data']['content']['innings']
+            return self.comms_json['props']['pageProps']['data']['pageData']['content']['scorecard']['innings']
         except:
-            return None
-
-    def _close_of_play(self):
-        try:
-            return self.comms_json['props']['pageProps']['data']['content']['closePlay']
-        except:
-            return None
+            return self.json['innings']
 
     def batsmen(self, innings):
         try:
-            return self.comms_json['props']['pageProps']['data']['content']['innings'][str(innings)]['batsmen']
+            return self.comms_json['props']['pageProps']['data']['pageData']['content']['scorecard']['innings'][str(innings)]['inningBatsmen']
         except:
             return None
 
     def bowlers(self, innings):
         try:
-            return self.comms_json['props']['pageProps']['data']['content']['innings'][str(innings)]['bowlers']
-        except:
-            return None
-
-    def did_not_bat(self, innings):
-        try:
-            return self.comms_json['props']['pageProps']['data']['content']['innings'][str(innings)]['didNotBat']
+            return self.comms_json['props']['pageProps']['data']['pageData']['content']['scorecard']['innings'][str(innings)]['inningBowlers']
         except:
             return None
 
     def extras(self, innings):
         try:
-            return self.comms_json['props']['pageProps']['data']['content']['innings'][str(innings)]['extras']
+            return self.comms_json['props']['pageProps']['data']['pageData']['content']['scorecard']['innings'][str(innings)]['extras']
         except:
             return None
 
     def fows(self, innings):
         try:
-            return self.comms_json['props']['pageProps']['data']['content']['innings'][str(innings)]['fallOfWickets']
+            return self.comms_json['props']['pageProps']['data']['pageData']['content']['scorecard']['innings'][str(innings)]['inningFallOfWickets']
         except:
             return None
 
