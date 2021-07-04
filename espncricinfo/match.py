@@ -67,19 +67,20 @@ class Match(object):
             self.team_2_run_rate = self._team_2_run_rate()
             self.team_2_overs_batted = self._team_2_overs_batted()
             self.team_2_batting_result = self._team_2_batting_result()
-            self.home_team = self._home_team()
-            self.batting_first = self._batting_first()
-            self.match_winner = self._match_winner()
-            self.toss_winner = self._toss_winner()
-            self.toss_decision = self._toss_decision()
-            self.toss_decision_name = self._toss_decision_name()
-            self.toss_choice_team_id = self._toss_choice_team_id()
-            self.toss_winner_team_id = self._toss_winner_team_id()
-            self.espn_api_url = self._espn_api_url()
-            # from comms_json
-            self.rosters = self._rosters()
-            self.all_innings = self._all_innings()
-            self.close_of_play = self._close_of_play()
+            if not self.status == 'dormant':
+                self.home_team = self._home_team()
+                self.batting_first = self._batting_first()
+                self.match_winner = self._match_winner()
+                self.toss_winner = self._toss_winner()
+                self.toss_decision = self._toss_decision()
+                self.toss_decision_name = self._toss_decision_name()
+                self.toss_choice_team_id = self._toss_choice_team_id()
+                self.toss_winner_team_id = self._toss_winner_team_id()
+                self.espn_api_url = self._espn_api_url()
+                # from comms_json
+                self.rosters = self._rosters()
+                self.all_innings = self._all_innings()
+                self.close_of_play = self._close_of_play()
 
 
     def __str__(self):

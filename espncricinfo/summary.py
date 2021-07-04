@@ -1,33 +1,24 @@
-import json
 import requests
-import datetime
 from bs4 import BeautifulSoup
 from espncricinfo.match import Match
 
 class Summary(object):
 
     def __init__(self):
-        self.url = "https://www.espncricinfo.com/scores"
-        self.html = self.get_html()
+        self.url = "http://static.cricinfo.com/rss/livescores.xml"
+        self.xml = self.get_xml()
         self.match_ids = self._match_ids()
         self.matches = self._build_matches()
 
-    def get_html(self):
+    def get_xml(self):
         r = requests.get(self.url)
         if r.status_code == 404:
             raise MatchNotFoundError
         else:
-            return BeautifulSoup(r.text, 'html.parser')
-
-    def summary_json(self):
-        try:
-            text = self.html.find_all('script')[15].contents[0]
-            return json.loads(text)
-        except:
-            return None
+            return BeautifulSoup(r.text, 'xml')
 
     def _match_ids(self):
-        matches = [x['id'] for x in self.summary_json()['props']['pageProps']['data']['content']['leagueEvents'][0]['matchEvents']]
+        matches = [x.link.text.split(".html")[0].split('/')[6] for x in self.xml.findAll('item')]
         return matches
 
     def _build_matches(self):
