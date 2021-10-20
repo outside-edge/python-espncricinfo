@@ -17,4 +17,5 @@ class TestMatchMethods(unittest.TestCase):
         self.assertEqual(self.match.toss_winner, '5153')
 
 if __name__ == '__main__':
+    print("Test")
     unittest.main()
