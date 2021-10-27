@@ -15,3 +15,5 @@ setup(name="python-espncricinfo",
       keywords= "espncricinfo cricket t20 odi",
       classifiers=['Development Status :: 4 - Beta'],
       zip_safe = True)
+
+print("Test")
