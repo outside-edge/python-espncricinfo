@@ -9,4 +9,4 @@ requests>=2.20.0
 pyyaml
 six==1.15.0
 umalqurra==0.2
-wheel==0.24.0
+wheel==0.38.0
