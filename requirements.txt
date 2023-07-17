@@ -1,5 +1,5 @@
 beautifulsoup4==4.9.1
-dateparser==0.7.6
+dateparser==1.1.6
 jdatetime==3.6.2
 python-dateutil==2.8.1
 python-espncricinfo==0.4.1
