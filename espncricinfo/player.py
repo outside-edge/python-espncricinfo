@@ -64,9 +64,7 @@ class Player(object):
         teams = []
         for x in self.json['majorTeams']:
             r = requests.get(x['$ref'])
-            print(x['$ref'])
             if r.status_code == 404:
-                # is new error required
                 raise TeamNotFoundError
             else:
                 teams.append(r.json()['name'])
