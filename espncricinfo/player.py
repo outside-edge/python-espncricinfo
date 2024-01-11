@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import dateparser
-from espncricinfo.exceptions import PlayerNotFoundError
+from espncricinfo.exceptions import PlayerNotFoundError, TeamNotFoundError
 from espncricinfo.match import Match
 import csv
 
@@ -23,9 +23,7 @@ class Player(object):
         self.playing_role = self._playing_role()
         self.batting_style = self._batting_style()
         self.bowling_style = self._bowling_style()
-
-        if self.parsed_html:
-            self.major_teams = self._major_teams()
+        self.major_teams = self._major_teams()
 
     def get_html(self):
         r = requests.get(self.url)
@@ -63,7 +61,15 @@ class Player(object):
         return self.json['age']
 
     def _major_teams(self):
-        return [x.text for x in self.parsed_html.find('div', class_='overview-teams-grid').find_all('h5')]
+        teams = []
+        for x in self.json['majorTeams']:
+            r = requests.get(x['$ref'])
+            if r.status_code == 404:
+                # is new error required
+                raise TeamNotFoundError
+            else:
+                teams.append(r.json()['name'])
+        return teams
 
     def _playing_role(self):
         return self.json['position']
