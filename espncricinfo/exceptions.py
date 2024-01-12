@@ -25,9 +25,3 @@ class NoSeriesError(TypeError):
     Exception raised if a series_id is not valid or does not exist.
     """
     pass
-
-class TeamNotFoundError(TypeError):
-    """
-    Exception raised if a players majorTeam is unable to be found
-    """
-    pass
