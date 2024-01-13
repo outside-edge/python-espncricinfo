@@ -11,8 +11,10 @@ class Player(object):
         self.player_id=player_id
         self.url = "https://www.espncricinfo.com/player/player-name-{0}".format(str(player_id))
         self.json_url = "http://core.espnuk.org/v2/sports/cricket/athletes/{0}".format(str(player_id))
+        self.new_json_url = "https://hs-consumer-api.espncricinfo.com/v1/pages/player/home?playerId={0}".format(str(player_id))
         self.parsed_html = self.get_html() 
         self.json = self.get_json()       
+        self.new_json = self.get_new_json()
         self.cricinfo_id = str(player_id)
         self.__unicode__ = self._full_name()
         self.name = self._name()
@@ -23,9 +25,7 @@ class Player(object):
         self.playing_role = self._playing_role()
         self.batting_style = self._batting_style()
         self.bowling_style = self._bowling_style()
-
-        if self.parsed_html:
-            self.major_teams = self._major_teams()
+        self.major_teams = self._major_teams()
 
     def get_html(self):
         r = requests.get(self.url)
@@ -36,6 +36,13 @@ class Player(object):
 
     def get_json(self):
         r = requests.get(self.json_url)
+        if r.status_code == 404:
+            raise PlayerNotFoundError
+        else:
+            return r.json()
+        
+    def get_new_json(self):
+        r = requests.get(self.new_json_url, headers={'user-agent': 'Mozilla/5.0'})
         if r.status_code == 404:
             raise PlayerNotFoundError
         else:
@@ -63,7 +70,7 @@ class Player(object):
         return self.json['age']
 
     def _major_teams(self):
-        return [x.text for x in self.parsed_html.find('div', class_='overview-teams-grid').find_all('h5')]
+        return [x['team']['longName'] for x in self.new_json['content']['teams']]
 
     def _playing_role(self):
         return self.json['position']
