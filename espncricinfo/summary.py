@@ -6,12 +6,13 @@ class Summary(object):
 
     def __init__(self):
         self.url = "http://static.cricinfo.com/rss/livescores.xml"
+        self.headers = {'user-agent': 'Mozilla/5.0'}
         self.xml = self.get_xml()
         self.match_ids = self._match_ids()
         self.matches = self._build_matches()
 
     def get_xml(self):
-        r = requests.get(self.url)
+        r = requests.get(self.url, headers=self.headers)
         if r.status_code == 404:
             raise MatchNotFoundError
         else:
