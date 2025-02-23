@@ -25,3 +25,15 @@ class NoSeriesError(TypeError):
     Exception raised if a series_id is not valid or does not exist.
     """
     pass
+
+class NoSeasonError(TypeError):
+    """
+    Exception raised if a series_id is not valid or does not exist.
+    """
+    pass
+
+class NoTeamError(TypeError):
+    """
+    Exception raised if a series_id is not valid or does not exist.
+    """
+    pass
