@@ -1,17 +1,20 @@
 import requests
 from bs4 import BeautifulSoup
 from espncricinfo.exceptions import MatchNotFoundError, NoSeriesError
+from espncricinfo.matches import Match
+from espncricinfo.seasons import Season
 
 class Series(object):
 
     def __init__(self, series_id):
         self.series_id = series_id
         self.json_url = "http://core.espnuk.org/v2/sports/cricket/leagues/{0}/".format(str(series_id))
-        self.events_url = "http://core.espnuk.org/v2/sports/cricket/leagues/{0}/events".format(str(series_id))
         self.seasons_url = "http://core.espnuk.org/v2/sports/cricket/leagues/{0}/seasons".format(str(series_id))
         self.headers = {'user-agent': 'Mozilla/5.0'}
         self.json = self.get_json(self.json_url)
         self.seasons = self._get_seasons()
+        self.events_url = f"{0}/events".format(self.seasons[0])
+        self.current_season = Season(self.seasons[0].split("/seasons/")[-1])
         self.years = self._get_years_from_seasons()
         if self.json:
             self.name = self.json['name']
@@ -24,6 +27,9 @@ class Series(object):
 
         if self.events_json:
             self.events = self._build_events()
+            self.current_events = self._get_current_events()
+            self.matches = self._build_matches()
+            self.current_match = self._get_current_match()
 
     def get_json(self, url):
         r = requests.get(url,headers=self.headers)
@@ -55,8 +61,27 @@ class Series(object):
         else:
             return None
 
+    def _get_current_events(self):
+        events_json = self.get_json(self.events[0])
+        if events_json:
+            return [x['$ref'] for x in events_json['items']]
+        else:
+            return None
+
+    def _get_current_matches(self):
+        matches = []
+        for match_url in self.current_events:
+            matches.append(Match(match_url.split("/events/")[-1]))
+        return matches
+
     def _build_events(self):
         events = []
         for event in self.events_json:
             events.append(self.get_json(event['$ref']))
         return events
+
+    def _build_matches(self):
+        matches = []
+        for match_url in self.events:
+            matches.append(Match(match_url.split("/events/")[-1]))
+        return matches
