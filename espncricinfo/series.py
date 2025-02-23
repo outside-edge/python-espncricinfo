@@ -28,7 +28,7 @@ class Series(object):
             self.events = self._build_events()
             self.current_events = self._get_current_events()
             self.matches = self._build_matches()
-            self.current_match = self._get_current_match()
+            self.current_matches = self._get_current_matches()
     
     @property
     def seasons(self):
