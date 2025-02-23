@@ -1,6 +1,6 @@
 import requests
 from datetime import datetime
-from espncricinfo.exceptions import NoSeriesError
+from espncricinfo.exceptions import NoSeasonError
 
 class Season:
     def __init__(self, season_id, season_type_id=8081):
@@ -20,8 +20,6 @@ class Season:
             self.teams_url = self.json.get('teams', {}).get('$ref')
             self._series = None
             self.rankings_url = self.json.get('rankings', {}).get('$ref')
-        else:
-            raise NoSeriesError("Invalid season or no data found.")
     
     @property
     def series(self):
@@ -37,7 +35,7 @@ class Season:
     def get_json(self, url):
         response = requests.get(url, headers=self.headers)
         if response.status_code == 404:
-            raise NoSeriesError("Season not found.")
+            raise NoSeasonError("Season not found.")
         return response.json()
     
     def parse_date(self, date_str):
