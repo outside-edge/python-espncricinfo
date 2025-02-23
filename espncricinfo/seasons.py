@@ -9,7 +9,7 @@ class Season:
         self.type_id = season_type_id
         self.json_url = f"http://core.espnuk.org/v2/sports/cricket/leagues/{season_type_id}/seasons/{season_id}"        
         self.headers = {'user-agent': 'Mozilla/5.0'}
-        self.json = self.get_json(self.season_url)
+        self.json = self.get_json(self.json_url)
         
         if self.json:
             self.year = self.json.get('year')
