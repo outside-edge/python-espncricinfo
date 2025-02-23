@@ -17,8 +17,9 @@ class Season:
             self.name = self.json.get('name')
             self.short_name = self.json.get('shortName')
             self.slug = self.json.get('slug')
-            self.teams_url = self.json.get('teams', {}).get('$ref')
+            self._teams_url = self.json.get('teams', {}).get('$ref')
             self._series = None
+            self._teams = []
             self.rankings_url = self.json.get('rankings', {}).get('$ref')
     
     @property
@@ -31,6 +32,18 @@ class Season:
                 series_id = series_url.split("/series/")[-1].split(".html")[0]
                 self._series = Series(series_id)
         return self._series
+    
+    @property
+    def teams(self):
+        if self._teams is None:
+            from espncricinfo.teams import Team
+            teams_json = self.get_json(self._teams_url)
+            teams_ = teams_json.get('items', [])
+            for t in teams_:
+                team_id = t.split("/teams/")[-1]
+                team_ = Team(team_id)
+                self._teams.append(team_)
+        return self._teams
     
     def get_json(self, url):
         response = requests.get(url, headers=self.headers)
