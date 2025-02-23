@@ -4,7 +4,7 @@ from espncricinfo.exceptions import NoSeriesError
 from espncricinfo.series import Series
 
 class Season:
-    def __init__(self, season_id, season_type_id):
+    def __init__(self, season_id, season_type_id=8081):
         self.id = season_id
         self.type_id = season_type_id
         self.json_url = f"http://core.espnuk.org/v2/sports/cricket/leagues/{season_type_id}/seasons/{season_id}"        
@@ -39,7 +39,7 @@ class Season:
         links = self.json.get('links', [])
         if links and len(links)>5:
             series_url = links[5]["href"]
-            series_id = int(series_url.split("/series/")[-1].split(".html")[0])
+            series_id = series_url.split("/series/")[-1].split(".html")[0]
             series = Series(series_id)
             return series
         return None
