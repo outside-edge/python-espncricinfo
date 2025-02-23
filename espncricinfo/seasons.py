@@ -26,7 +26,7 @@ class Season:
     def series(self):
         if self._series is None:
             from espncricinfo.series import Series
-            series_url = self.json.get('links', [])
+            links = self.json.get('links', [])
             if links and len(links)>5:
                 series_url = links[5]["href"]
                 series_id = series_url.split("/series/")[-1].split(".html")[0]
