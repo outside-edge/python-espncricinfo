@@ -3,10 +3,10 @@ from datetime import datetime
 from espncricinfo.exceptions import NoSeasonError
 
 class Season:
-    def __init__(self, season_id, season_type_id=8081):
+    def __init__(self, season_id, series_id=8039):
         self.id = season_id
-        self.type_id = season_type_id
-        self.json_url = f"http://core.espnuk.org/v2/sports/cricket/leagues/{season_type_id}/seasons/{season_id}"        
+        self.series_id = series_id
+        self.json_url = f"http://core.espnuk.org/v2/sports/cricket/leagues/{series_id}/seasons/{season_id}"        
         self.headers = {'user-agent': 'Mozilla/5.0'}
         self.json = self.get_json(self.json_url)
         
