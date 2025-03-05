@@ -135,7 +135,7 @@ class Match(object):
         return self.json['description']
 
     def _note(self):
-        return self.json()['live']['status']
+        return self.json['live']['status']
 
     def _status(self):
         return self.match_json()['match_status']
