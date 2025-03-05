@@ -68,6 +68,7 @@ class Match(object):
             self.team_2_run_rate = self._team_2_run_rate()
             self.team_2_overs_batted = self._team_2_overs_batted()
             self.team_2_batting_result = self._team_2_batting_result()
+            self.note = self._note()
             if not self.status == 'dormant':
                 self.home_team = self._home_team()
                 self.batting_first = self._batting_first()
@@ -132,6 +133,9 @@ class Match(object):
 
     def __unicode__(self):
         return self.json['description']
+
+    def _note(self):
+        return self.match_json()['_note']
 
     def _status(self):
         return self.match_json()['match_status']
