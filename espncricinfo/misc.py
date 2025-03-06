@@ -1,16 +1,16 @@
 
 class BatterPlaying:
     def __init__(self, batting_data):
-        self.balls_faced = int(batting_data.get("balls_faced", 0))
-        self.batting_position = int(batting_data.get("batting_position", 0))
-        self.fours = int(batting_data.get("fours", 0))
-        self.innings_number = int(batting_data.get("innings_number", 0))
+        self.balls_faced = int(batting_data.get("balls_faced") or 0)
+        self.batting_position = int(batting_data.get("batting_position") or 0)
+        self.fours = int(batting_data.get("fours") or 0)
+        self.innings_number = int(batting_data.get("innings_number") or 0)
         self.live_current = int(batting_data.get("live_current", 0))
         self.is_batting = batting_data.get("live_current_name") == "striker"
-        self.minutes = int(batting_data.get("minutes", 0))
+        self.minutes = int(batting_data.get("minutes") or 0)
         self.player_id = int(batting_data.get("player_id") or 0)
-        self.runs = int(batting_data.get("runs", 0))
-        self.sixes = int(batting_data.get("sixes", 0))
+        self.runs = int(batting_data.get("runs") or 0)
+        self.sixes = int(batting_data.get("sixes") or 0)
         self.strike_rate = float(batting_data.get("strike_rate") or 0.0)
         self.team_id = int(batting_data.get("team_id") or 0)
 
@@ -21,15 +21,15 @@ class BowlerPlaying:
     def __init__(self, bowling_data):
         self.player_id = int(bowling_data.get("player_id") or 0)
         self.team_id = int(bowling_data.get("team_id") or 0)
-        self.innings_number = int(bowling_data.get("innings_number", 0))
+        self.innings_number = int(bowling_data.get("innings_number") or 0)
         self.overs = float(bowling_data.get("overs") or 0.0)
-        self.maidens = int(bowling_data.get("maidens", 0))
+        self.maidens = int(bowling_data.get("maidens") or 0)
         self.conceded = int(bowling_data.get("conceded", 0))
-        self.wickets = int(bowling_data.get("wickets", 0))
+        self.wickets = int(bowling_data.get("wickets") or 0)
         self.economy_rate = float(bowling_data.get("economy_rate") or 0.0)
-        self.noballs = int(bowling_data.get("noballs", 0))
-        self.wides = int(bowling_data.get("wides", 0))
-        self.live_current = int(bowling_data.get("live_current", 0))
+        self.noballs = int(bowling_data.get("noballs") or 0)
+        self.wides = int(bowling_data.get("wides") or 0)
+        self.live_current = int(bowling_data.get("live_current") or 0)
         self.is_bowling = bowling_data.get("live_current_name", "") == "current bowler"
 
     def __repr__(self):
