@@ -1,6 +1,7 @@
 import json
 import requests
 from bs4 import BeautifulSoup
+from espncricinfo.misc import *
 from espncricinfo.exceptions import MatchNotFoundError, NoScorecardError
 
 class Match(object):
@@ -47,12 +48,12 @@ class Match(object):
             self.followon = self._followon()
             self.scheduled_overs = self._scheduled_overs()
             self.innings_list = self._innings_list()
-            self.innings = self._innings()
-            self.latest_batting = self._latest_batting()
-            self.latest_bowling = self._latest_bowling()
+            self.innings = [ Inning(inn) for inn in self._innings() ]
+            self.latest_batting = [ Batsman(bdata) for bdata in self._latest_batting() ]
+            self.latest_bowling = [ Bowler(bldata) for bldata in self._latest_bowling() ]
             self.latest_innings = self._latest_innings()
             self.latest_innings_fow = self._latest_innings_fow()
-            self.team_1 = self._team_1()
+            self.team_1 = Team(self._team_1())
             self.team_1_id = self._team_1_id()
             self.team_1_abbreviation = self._team_1_abbreviation()
             self.team_1_players = self._team_1_players()
@@ -60,7 +61,7 @@ class Match(object):
             self.team_1_run_rate = self._team_1_run_rate()
             self.team_1_overs_batted = self._team_1_overs_batted()
             self.team_1_batting_result = self._team_1_batting_result()
-            self.team_2 = self._team_2()
+            self.team_2 = Team(self._team_2())
             self.team_2_id = self._team_2_id()
             self.team_2_abbreviation = self._team_2_abbreviation()
             self.team_2_players = self._team_2_players()
@@ -69,6 +70,7 @@ class Match(object):
             self.team_2_overs_batted = self._team_2_overs_batted()
             self.team_2_batting_result = self._team_2_batting_result()
             self.note = self._note()
+            self.live = self._live()
             if not self.status == 'dormant':
                 self.home_team = self._home_team()
                 self.batting_first = self._batting_first()
@@ -136,6 +138,10 @@ class Match(object):
 
     def _note(self):
         return self.json['live']['status']
+
+    def _live(self):
+        live = Live(self.json)
+        return live
 
     def _status(self):
         return self.match_json()['match_status']
@@ -368,7 +374,7 @@ class Match(object):
 
     def _toss_decision(self):
         if self.match_json()['toss_decision'] == '' and len(self.innings) > 0:
-            if self.innings[0]['batting_team_id'] == self.toss_winner:
+            if self.innings[0].batting_team_id == self.toss_winner:
                 decision = '1'
             else:
                 decision = '2'
@@ -378,7 +384,7 @@ class Match(object):
 
     def _toss_decision_name(self):
         if self.match_json()['toss_decision_name'] == '' and len(self.innings) > 0:
-            if self.innings[0]['batting_team_id'] == self.toss_winner:
+            if self.innings[0].batting_team_id == self.toss_winner:
                 decision_name = 'bat'
             else:
                 decision_name = 'bowl'

@@ -1,10 +1,8 @@
 import requests
-from bs4 import BeautifulSoup
 from espncricinfo.exceptions import MatchNotFoundError, NoSeriesError
-from espncricinfo.matches import Match
+from espncricinfo.match import Match
 
 class Series(object):
-
     def __init__(self, series_id):
         self.series_id = series_id
         self.json_url = "http://core.espnuk.org/v2/sports/cricket/leagues/{0}/".format(str(series_id))
