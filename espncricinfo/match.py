@@ -49,8 +49,8 @@ class Match(object):
             self.scheduled_overs = self._scheduled_overs()
             self.innings_list = self._innings_list()
             self.innings = [ Inning(inn) for inn in self._innings() ]
-            self.latest_batting = [ Batsman(bdata) for bdata in self._latest_batting() ]
-            self.latest_bowling = [ Bowler(bldata) for bldata in self._latest_bowling() ]
+            self.latest_batting = [ Batsman(bdata) for bdata in (self._latest_batting() or []) if bdata ]
+            self.latest_bowling = [ Bowler(bldata) for bldata in (self._latest_bowling() or []) if bldata ]
             self.latest_innings = self._latest_innings()
             self.latest_innings_fow = self._latest_innings_fow()
             self.team_1 = Team(self._team_1())
@@ -349,54 +349,78 @@ class Match(object):
             return None
 
     def _home_team(self):
-        if self._team_1_id() == self.match_json()['home_team_id']:
+        home_team_id = self.match_json().get('home_team_id', None)
+        if not home_team_id:
+            return None
+        if self._team_1_id() == home_team_id:
             return self._team_1_abbreviation()
         else:
             return self._team_2_abbreviation()
 
     def _batting_first(self):
-        if self._team_1_id() == self.match_json()['batting_first_team_id']:
+        batting_first_team_id = self.match_json().get('batting_first_team_id', None)
+        if not batting_first_team_id:
+            return None
+        if self._team_1_id() == batting_first_team_id:
             return self._team_1_abbreviation()
         else:
             return self._team_2_abbreviation()
 
     def _match_winner(self):
-        if self._team_1_id() == self.match_json()['winner_team_id']:
+        winner_team_id = self.match_json().get('winner_team_id', None)
+        if not winner_team_id:
+            return None
+        if self._team_1_id() == winner_team_id:
             return self._team_1_abbreviation()
         else:
             return self._team_2_abbreviation()
 
     def _toss_winner(self):
-        if self._team_1_id() == self.match_json()['toss_winner_team_id']:
+        toss_winner_team_id = self.match_json().get('toss_winner_team_id', None)
+        if not toss_winner_team_id:
+            return None
+        if self._team_1_id() == toss_winner_team_id:
             return self._team_1_id()
         else:
             return self._team_2_id()
 
     def _toss_decision(self):
-        if self.match_json()['toss_decision'] == '' and len(self.innings) > 0:
+        toss_decision = self.match_json().get('toss_decision', None)
+        if not toss_decision:
+            return None
+        if toss_decision == '' and len(self.innings) > 0:
             if self.innings[0].batting_team_id == self.toss_winner:
                 decision = '1'
             else:
                 decision = '2'
         else:
-            decision = self.match_json()['toss_decision']
+            decision = toss_decision
         return decision
 
     def _toss_decision_name(self):
-        if self.match_json()['toss_decision_name'] == '' and len(self.innings) > 0:
+        toss_decision_name = self.match_json().get('toss_decision_name', None)
+        if not toss_decision_name:
+            return None
+        if toss_decision_name == '' and len(self.innings) > 0:
             if self.innings[0].batting_team_id == self.toss_winner:
                 decision_name = 'bat'
             else:
                 decision_name = 'bowl'
         else:
-            decision_name = self.match_json()['toss_decision_name']
+            decision_name = toss_decision_name
         return decision_name
 
     def _toss_choice_team_id(self):
-        return self.match_json()['toss_choice_team_id']
+        toss_choice_team_id = self.match_json().get('toss_choice_team_id', None)
+        if not toss_choice_team_id:
+            return None
+        return toss_choice_team_id
 
     def _toss_winner_team_id(self):
-        return self.match_json()['toss_winner_team_id']
+        toss_winner_team_id = self.match_json().get('toss_winner_team_id', None)
+        if not toss_winner_team_id:
+            return None
+        return toss_winner_team_id
 
     # comms_json methods
 
