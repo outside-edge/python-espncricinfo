@@ -140,7 +140,7 @@ class Match(object):
         return self.json['live']['status']
 
     def _live(self):
-        live = Live(self.json)
+        live = Live(self.json['live'])
         return live
 
     def _status(self):

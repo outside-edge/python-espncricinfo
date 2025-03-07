@@ -188,19 +188,19 @@ class Team:
 
 class Live:
     def __init__(self, json_data):
-        self.batting = [ BatterPlaying(data) for data in json_data['live']['batting'] ]
-        self.bowling = [ BowlerPlaying(data) for data in json_data['live']['bowling'] ]
-        self.status = json_data['live']['status']
-        self.ball_limit = int(json_data['live'].get('innings', {}).get('ball_limit') or 0)
-        self.balls = int(json_data['live'].get('innings', {}).get('balls') or 0)
-        self.current_inning = int(json_data['live'].get('innings', {}).get('innings_number') or 0)
-        self.batting_team_id = int(json_data['live'].get('innings', {}).get('batting_team_id') or 0)
-        self.bowling_team_id = int(json_data['live'].get('innings', {}).get('bowling_team_id') or 0)
-        self.overs = float(json_data['live'].get('innings', {}).get('overs') or 0.0)
-        self.remaining_balls = int(json_data['live'].get('innings', {}).get('remaining_balls') or 0)
-        self.rrr = float(json_data['live'].get('innings', {}).get('required_run_rate') or 0.0)
-        self.crr = float(json_data['live'].get('innings', {}).get('run_rate') or 0.0)
-        self.runs = int(json_data['live'].get('innings', {}).get('runs') or 0)
-        self.target = int(json_data['live'].get('innings', {}).get('target') or 0)
-        self.team_id = int(json_data['live'].get('innings', {}).get('team_id') or 0)
-        self.wickets = int(json_data['live'].get('innings', {}).get('wickets') or 0)
+        self.batting = [ BatterPlaying(data) for data in json_data['batting'] ]
+        self.bowling = [ BowlerPlaying(data) for data in json_data['bowling'] ]
+        self.status = json_data['status']
+        self.ball_limit = int(json_data.get('innings', {}).get('ball_limit') or 0)
+        self.balls = int(json_data.get('innings', {}).get('balls') or 0)
+        self.current_inning = int(json_data.get('innings', {}).get('innings_number') or 0)
+        self.batting_team_id = int(json_data.get('innings', {}).get('batting_team_id') or 0)
+        self.bowling_team_id = int(json_data.get('innings', {}).get('bowling_team_id') or 0)
+        self.overs = float(json_data.get('innings', {}).get('overs') or 0.0)
+        self.remaining_balls = int(json_data.get('innings', {}).get('remaining_balls') or 0)
+        self.rrr = float(json_data.get('innings', {}).get('required_run_rate') or 0.0)
+        self.crr = float(json_data.get('innings', {}).get('run_rate') or 0.0)
+        self.runs = int(json_data.get('innings', {}).get('runs') or 0)
+        self.target = int(json_data.get('innings', {}).get('target') or 0)
+        self.team_id = int(json_data.get('innings', {}).get('team_id') or 0)
+        self.wickets = int(json_data.get('innings', {}).get('wickets') or 0)
