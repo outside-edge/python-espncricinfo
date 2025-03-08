@@ -35,7 +35,7 @@ class LiveMatches:
         self._get_live_matches()
     
     def _fetch_html(self):
-        response = requests.get(self.MATCH_URL, headers=self.HEADERS)
+        response = requests.get(self.match_url, headers=self.headers)
         if response.status_code != 200:
             print("Failed to retrieve page")
             return None
