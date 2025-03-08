@@ -1,6 +1,11 @@
 import requests, re
 from bs4 import BeautifulSoup
 
+class Team(object):
+    def __init__(self, teamname, score):
+        self.name = teamname
+        self.score = score
+
 class LiveMatch(object):
     def __init__(self, match_time, match_id, match_number, venue, date, year, series, teams, match_status):
         self.match_time = match_time
@@ -12,6 +17,7 @@ class LiveMatch(object):
         self.series = series
         self.teams = teams
         self.match_status = match_status
+        self.match_name = f"{teams[0].name} vs {teams[1].name}"
 
     def __repr__(self):
         teams_info = " | ".join([f"{team[0]}: {team[1]}" for team in self.teams])
@@ -33,7 +39,9 @@ class LiveMatches:
     
     @property
     def live_matches(self):
-        self._get_live_matches()
+        if not self._live_matches:
+            self._get_live_matches()
+        return self._live_matches
     
     def _fetch_html(self):
         response = requests.get(self.match_url, headers=self.headers)
@@ -43,17 +51,13 @@ class LiveMatches:
         return BeautifulSoup(response.text, "html.parser")
 
     def _get_live_matches(self):
-        self.html = self.fetch_html()
+        self.html = self._fetch_html()
         if not self.html:
             return []
         
         parent_div = self.html.select_one("html > body > div > section > section > div:nth-of-type(3) > div > div:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > div > div:nth-of-type(1) > div > div:nth-of-type(2) > div")
         if parent_div:
-            matches = []
             for match_ in parent_div.find_all(recursive=False):
-                a_div = match_.select_one("a.ds-no-tap-higlight")
-                match_url = a_div.get("href") or ""
-                match_id = re.search(r'-(\d+)/[^/]+$', match_url).group(1)
                 span_text = match_.select_one("span.ds-text-tight-xs.ds-font-bold.ds-uppercase.ds-leading-5")
                 div_text = match_.select_one("div.ds-text-tight-xs.ds-truncate.ds-text-typo-mid3")
                 match_time = span_text.text.strip() if span_text else "N/A"
@@ -71,8 +75,8 @@ class LiveMatches:
                         scores = [s.text.strip() for s in score_div.select("strong")]
                         formatted_score = f"{overs_target_text} {' & '.join(scores)}" if overs_target_text else " & ".join(scores)
                     else:
-                        formatted_score = "N/A"
-                    teams.append((team_name, formatted_score))
+                        formatted_score = None
+                    teams.append(Team(team_name, formatted_score))
                 
                 if match_date != "N/A":
                     match_number, venue, date, year, series = match_date.split(", ")
@@ -81,6 +85,9 @@ class LiveMatches:
                 
                 match_status_p = match_.find("p", class_="ds-text-tight-s ds-font-medium ds-truncate ds-text-typo")
                 match_status = match_status_p.text.strip() if match_status_p else "N/A"
+                a_div = match_.select_one("a.ds-no-tap-higlight")
+                match_url = a_div.get("href") or ""
+                match_id = re.search(r'-(\d+)/[^/]+$', match_url).group(1)
                 
-                matches.append(LiveMatch(match_time, match_id, match_number, venue, date, year, series, teams, match_status))
-        return matches
+                self._live_matches.append(LiveMatch(match_time, match_id, match_number, venue, date, year, series, teams, match_status))
+        return self._live_matches
