@@ -191,7 +191,6 @@ class Live:
         self.batting = [ BatterPlaying(data) for data in json_data['batting'] ]
         self.bowling = [ BowlerPlaying(data) for data in json_data['bowling'] ]
         self.status = json_data['status']
-        self.is_finished = True if (json_data['event_name']=='complete') else False
         self.ball_limit = int(json_data.get('innings', {}).get('ball_limit') or 0)
         self.balls = int(json_data.get('innings', {}).get('balls') or 0)
         self.current_inning = int(json_data.get('innings', {}).get('innings_number') or 0)
