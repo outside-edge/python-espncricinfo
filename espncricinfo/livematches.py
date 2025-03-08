@@ -1,9 +1,10 @@
-import requests
+import requests, re
 from bs4 import BeautifulSoup
 
 class LiveMatch(object):
-    def __init__(self, match_time, match_number, venue, date, year, series, teams, match_status):
+    def __init__(self, match_time, match_id, match_number, venue, date, year, series, teams, match_status):
         self.match_time = match_time
+        self.match_id = match_id
         self.match_number = match_number
         self.venue = venue
         self.date = date
@@ -50,6 +51,9 @@ class LiveMatches:
         if parent_div:
             matches = []
             for match_ in parent_div.find_all(recursive=False):
+                a_div = match_.select_one("a.ds-no-tap-higlight")
+                match_url = a_div.get("href") or ""
+                match_id = re.search(r'-(\d+)/[^/]+$', match_url).group(1)
                 span_text = match_.select_one("span.ds-text-tight-xs.ds-font-bold.ds-uppercase.ds-leading-5")
                 div_text = match_.select_one("div.ds-text-tight-xs.ds-truncate.ds-text-typo-mid3")
                 match_time = span_text.text.strip() if span_text else "N/A"
@@ -78,5 +82,5 @@ class LiveMatches:
                 match_status_p = match_.find("p", class_="ds-text-tight-s ds-font-medium ds-truncate ds-text-typo")
                 match_status = match_status_p.text.strip() if match_status_p else "N/A"
                 
-                matches.append(LiveMatch(match_time, match_number, venue, date, year, series, teams, match_status))
+                matches.append(LiveMatch(match_time, match_id, match_number, venue, date, year, series, teams, match_status))
         return matches
