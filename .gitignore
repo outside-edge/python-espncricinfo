@@ -3,3 +3,4 @@
 *.swp
 test_settings.py
 cricinfo/**
+*.egg-info/

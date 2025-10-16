@@ -11,11 +11,19 @@ class Player(object):
         self.player_id=player_id
         self.url = "https://www.espncricinfo.com/player/player-name-{0}".format(str(player_id))
         self.json_url = "http://core.espnuk.org/v2/sports/cricket/athletes/{0}".format(str(player_id))
-        self.new_json_url = "https://hs-consumer-api.espncricinfo.com/v1/pages/player/home?playerId={0}".format(str(player_id))
-        self.headers = {'user-agent': 'Mozilla/5.0'}
-        self.parsed_html = self.get_html() 
-        self.json = self.get_json()       
-        self.new_json = self.get_new_json()
+        # new_json_url isn't accessible
+        # self.new_json_url = "https://hs-consumer-api.espncricinfo.com/v1/pages/player/home?playerId={0}".format(str(player_id))
+        self.headers = {
+            "User-Agent": (
+                "Mozilla/5.0 (X11; Linux x86_64; rv:143.0)"
+                "Gecko/20100101 Firefox/143.0"
+            ),
+            "Accept-Language": "en-US,en;q=0.9",
+            "Connection": "keep-alive"
+    }
+        self.parsed_html = self.get_html()
+        self.json = self.get_json()
+     #   self.new_json = self.get_new_json()
         self.cricinfo_id = str(player_id)
         self.__unicode__ = self._full_name()
         self.name = self._name()
@@ -26,7 +34,8 @@ class Player(object):
         self.playing_role = self._playing_role()
         self.batting_style = self._batting_style()
         self.bowling_style = self._bowling_style()
-        self.major_teams = self._major_teams()
+        # new_json_url isn't accessible
+        # self.major_teams = self._major_teams()
 
     def get_html(self):
         r = requests.get(self.url, headers=self.headers)
@@ -41,13 +50,15 @@ class Player(object):
             raise PlayerNotFoundError
         else:
             return r.json()
-        
-    def get_new_json(self):
-        r = requests.get(self.new_json_url, headers=self.headers)
-        if r.status_code == 404:
-            raise PlayerNotFoundError
-        else:
-            return r.json()
+
+
+   # new_json_url isn't accessible
+   # def get_new_json(self):
+   #     r = requests.get(self.new_json_url, headers=self.headers)
+   #     if r.status_code == 404:
+   #         raise PlayerNotFoundError
+   #     else:
+   #         return r.json()
 
     def _name(self):
         return self.json['name']
@@ -70,8 +81,9 @@ class Player(object):
     def _current_age(self):
         return self.json['age']
 
-    def _major_teams(self):
-        return [x['team']['longName'] for x in self.new_json['content']['teams']]
+# new_json_url isn't accessible
+#    def _major_teams(self):
+#        return [x['team']['longName'] for x in self.new_json['content']['teams']]
 
     def _playing_role(self):
         return self.json['position']
