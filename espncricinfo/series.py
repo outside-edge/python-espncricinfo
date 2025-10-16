@@ -9,7 +9,14 @@ class Series(object):
         self.json_url = "http://core.espnuk.org/v2/sports/cricket/leagues/{0}/".format(str(series_id))
         self.events_url = "http://core.espnuk.org/v2/sports/cricket/leagues/{0}/events".format(str(series_id))
         self.seasons_url = "http://core.espnuk.org/v2/sports/cricket/leagues/{0}/seasons".format(str(series_id))
-        self.headers = {'user-agent': 'Mozilla/5.0'}
+        self.headers = {
+            "User-Agent": (
+                "Mozilla/5.0 (X11; Linux x86_64; rv:143.0)"
+                "Gecko/20100101 Firefox/143.0"
+            ),
+            "Accept-Language": "en-US,en;q=0.9",
+            "Connection": "keep-alive"
+    }
         self.json = self.get_json(self.json_url)
         self.seasons = self._get_seasons()
         self.years = self._get_years_from_seasons()

@@ -7,9 +7,16 @@ class Match(object):
 
     def __init__(self, match_id):
         self.match_id = match_id
-        self.match_url = "https://www.espncricinfo.com/matches/engine/match/{0}.html".format(str(match_id))
-        self.json_url = "https://www.espncricinfo.com/matches/engine/match/{0}.json".format(str(match_id))
-        self.headers = {'user-agent': 'Mozilla/5.0'}
+        self.match_url = f"https://www.espncricinfo.com/ci/engine/match/{match_id}.html"
+        self.json_url = f"https://www.espncricinfo.com/ci/engine/match/{match_id}.json"
+        self.headers = {
+            "User-Agent": (
+                "Mozilla/5.0 (X11; Linux x86_64; rv:143.0)"
+                "Gecko/20100101 Firefox/143.0"
+            ),
+            "Accept-Language": "en-US,en;q=0.9",
+            "Connection": "keep-alive"
+    }
         self.json = self.get_json()
         self.html = self.get_html()
         self.comms_json = self.get_comms_json()
