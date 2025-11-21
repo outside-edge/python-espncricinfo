@@ -1,4 +1,4 @@
-import requests
+import cloudscraper
 from bs4 import BeautifulSoup
 from espncricinfo.exceptions import MatchNotFoundError, NoSeriesError
 
@@ -10,6 +10,7 @@ class Series(object):
         self.events_url = "http://core.espnuk.org/v2/sports/cricket/leagues/{0}/events".format(str(series_id))
         self.seasons_url = "http://core.espnuk.org/v2/sports/cricket/leagues/{0}/seasons".format(str(series_id))
         self.headers = {'user-agent': 'Mozilla/5.0'}
+        self.scraper = cloudscraper.create_scraper()
         self.json = self.get_json(self.json_url)
         self.seasons = self._get_seasons()
         self.years = self._get_years_from_seasons()
@@ -26,7 +27,7 @@ class Series(object):
             self.events = self._build_events()
 
     def get_json(self, url):
-        r = requests.get(url,headers=self.headers)
+        r = self.scraper.get(url, headers=self.headers)
         if r.status_code == 404:
             raise "Not Found"
         else:

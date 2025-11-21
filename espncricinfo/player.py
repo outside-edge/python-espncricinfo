@@ -1,6 +1,5 @@
-import requests
+import cloudscraper
 from bs4 import BeautifulSoup
-import dateparser
 from espncricinfo.exceptions import PlayerNotFoundError
 from espncricinfo.match import Match
 import csv
@@ -13,6 +12,7 @@ class Player(object):
         self.json_url = "http://core.espnuk.org/v2/sports/cricket/athletes/{0}".format(str(player_id))
         self.new_json_url = "https://hs-consumer-api.espncricinfo.com/v1/pages/player/home?playerId={0}".format(str(player_id))
         self.headers = {'user-agent': 'Mozilla/5.0'}
+        self.scraper = cloudscraper.create_scraper()
         self.parsed_html = self.get_html() 
         self.json = self.get_json()       
         self.new_json = self.get_new_json()
@@ -29,21 +29,21 @@ class Player(object):
         self.major_teams = self._major_teams()
 
     def get_html(self):
-        r = requests.get(self.url, headers=self.headers)
+        r = self.scraper.get(self.url, headers=self.headers)
         if r.status_code == 404:
             raise PlayerNotFoundError
         else:
             return BeautifulSoup(r.text, 'html.parser')
 
     def get_json(self):
-        r = requests.get(self.json_url, headers=self.headers)
+        r = self.scraper.get(self.json_url, headers=self.headers)
         if r.status_code == 404:
             raise PlayerNotFoundError
         else:
             return r.json()
-        
+
     def get_new_json(self):
-        r = requests.get(self.new_json_url, headers=self.headers)
+        r = self.scraper.get(self.new_json_url, headers=self.headers)
         if r.status_code == 404:
             raise PlayerNotFoundError
         else:
@@ -127,7 +127,7 @@ class Player(object):
             self.file_name = f"{self.player_id}_{self.match_format}_{self.data_type}_career_averages.csv"
 
         self.url=f"https://stats.espncricinfo.com/ci/engine/player/{self.player_id}.html?class={self.match_format};template=results;type={self.data_type}"
-        html_doc = requests.get(self.url, headers=self.headers)
+        html_doc = self.scraper.get(self.url, headers=self.headers)
         soup = BeautifulSoup(html_doc.text, 'html.parser')
         tables = soup.find_all("table")[2]
         table_rows = tables.find_all("tr")
@@ -159,7 +159,7 @@ class Player(object):
             self.file_name = f"{self.player_id}_{self.match_format}_{self.data_type}_career_summary.csv"
 
         self.url=f"https://stats.espncricinfo.com/ci/engine/player/{self.player_id}.html?class={self.match_format};template=results;type={self.data_type}"
-        html_doc = requests.get(self.url, headers=self.headers)
+        html_doc = self.scraper.get(self.url, headers=self.headers)
         soup = BeautifulSoup(html_doc.text, 'html.parser')
         tables = soup.find_all("table")[3]
         table_rows = tables.find_all("tr")
@@ -193,7 +193,7 @@ class Player(object):
             self.file_name = f"{self.player_id}_{self.match_format}_{self.data_type}_{self.view}.csv"
 
         self.url=f"https://stats.espncricinfo.com/ci/engine/player/{self.player_id}.html?class={self.match_format};template=results;type={self.data_type};view={self.view}"
-        html_doc = requests.get(self.url, headers=self.headers())
+        html_doc = self.scraper.get(self.url, headers=self.headers)
         soup = BeautifulSoup(html_doc.text, 'html.parser')
         tables = soup.find_all("table")[3]
         table_rows = tables.find_all("tr")

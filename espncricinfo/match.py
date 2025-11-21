@@ -1,5 +1,5 @@
 import json
-import requests
+import cloudscraper
 from bs4 import BeautifulSoup
 from espncricinfo.exceptions import MatchNotFoundError, NoScorecardError
 
@@ -10,6 +10,7 @@ class Match(object):
         self.match_url = "https://www.espncricinfo.com/matches/engine/match/{0}.html".format(str(match_id))
         self.json_url = "https://www.espncricinfo.com/matches/engine/match/{0}.json".format(str(match_id))
         self.headers = {'user-agent': 'Mozilla/5.0'}
+        self.scraper = cloudscraper.create_scraper()
         self.json = self.get_json()
         self.html = self.get_html()
         self.comms_json = self.get_comms_json()
@@ -90,7 +91,7 @@ class Match(object):
         return (f'{self.__class__.__name__}('f'{self.match_id!r})')
 
     def get_json(self):
-        r = requests.get(self.json_url,headers=self.headers)
+        r = self.scraper.get(self.json_url, headers=self.headers)
         if r.status_code == 404:
             raise MatchNotFoundError
         elif 'Scorecard not yet available' in r.text:
@@ -99,7 +100,7 @@ class Match(object):
             return r.json()
 
     def get_html(self):
-        r = requests.get(self.match_url,headers=self.headers)
+        r = self.scraper.get(self.match_url, headers=self.headers)
         if r.status_code == 404:
             raise MatchNotFoundError
         else:
@@ -432,6 +433,7 @@ class Match(object):
             url = "https://www.espncricinfo.com/ci/engine/match/index.html?date=%sview=week" % date
         else:
             url = "https://www.espncricinfo.com/ci/engine/match/index.html?view=week"
-        r = requests.get(url,headers={'user-agent': 'Mozilla/5.0'})
+        scraper = cloudscraper.create_scraper()
+        r = scraper.get(url, headers={'user-agent': 'Mozilla/5.0'})
         soup = BeautifulSoup(r.text, 'html.parser')
         return [x['href'].split('/',4)[4].split('.')[0] for x in soup.findAll('a', href=True, text='Scorecard')]
