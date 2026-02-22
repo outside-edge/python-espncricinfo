@@ -22,9 +22,13 @@ For a summary of live matches, create an instance of the `Summary` class:
 
 ```python
 >>> from espncricinfo.summary import Summary
+>>> from espncricinfo.match import Match
 >>> s = Summary()
->>> s.match_ids
-['68079', '68209', '68081', '61375', '65429']
+>>> s.matches
+[(1478874, 1478914), ...]
+>>> for series_id, match_id in s.matches:
+...     m = Match(match_id, series_id)
+...     print(m.description)
 ```
 
 For individual matches, pass in both the match ID and series ID. These can be discovered from `get_recent_matches()`, or read from a match page URL (the two numeric IDs in the URL path):
