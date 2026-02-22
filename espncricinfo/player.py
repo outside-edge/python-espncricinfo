@@ -1,3 +1,4 @@
+import warnings
 import requests
 from bs4 import BeautifulSoup
 import dateparser
@@ -82,30 +83,53 @@ class Player(object):
     def _bowling_style(self):
         return next((x for x in self.json['style'] if x['type'] == 'bowling'), None)
 
-    def in_team_for_match(self, match_id):
-        m = Match(match_id)
-        if next((p for p in m.team_1_players if p['object_id'] == self.cricinfo_id), None) or next((p for p in m.team_2_players if p['object_id'] == self.cricinfo_id), None):
-            return True
-        else:
-            return False
+    def in_team_for_match(self, match_id, series_id):
+        """
+        .. deprecated::
+            This method is not implemented against the current ESPN Cricinfo API.
+            Use Match(match_id, series_id).team_1_players and .team_2_players directly.
+        """
+        warnings.warn(
+            "in_team_for_match is deprecated and not implemented against the current API.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        raise NotImplementedError(
+            "in_team_for_match is not implemented against the current ESPN Cricinfo API. "
+            "Use Match(match_id, series_id).team_1_players and .team_2_players directly."
+        )
 
-    def batting_for_match(self, match_id):
-        batting_stats = []
-        m = Match(match_id)
-        for innings in list(m.full_scorecard['innings'].keys()):
-            stats = next((x for x in m.full_scorecard['innings'][innings]['batsmen'] if x['href'] == self.url), None)
-            if stats:
-                batting_stats.append({ 'innings': innings, 'balls_faced': next((x['value'] for x in stats['stats'] if x['name'] == 'ballsFaced'), None), 'minutes': next((x['value'] for x in stats['stats'] if x['name'] == 'minutes'), None), 'runs': next((x['value'] for x in stats['stats'] if x['name'] == 'runs'), None), 'fours': next((x['value'] for x in stats['stats'] if x['name'] == 'fours'), None), 'sixes': next((x['value'] for x in stats['stats'] if x['name'] == 'sixes'), None), 'strike_rate': next((x['value'] for x in stats['stats'] if x['name'] == 'strikeRate'), None) })
-        return batting_stats
+    def batting_for_match(self, match_id, series_id):
+        """
+        .. deprecated::
+            This method is not implemented against the current ESPN Cricinfo API.
+            Use Match(match_id, series_id).batsmen(innings) directly.
+        """
+        warnings.warn(
+            "batting_for_match is deprecated and not implemented against the current API.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        raise NotImplementedError(
+            "batting_for_match is not implemented against the current ESPN Cricinfo API. "
+            "Use Match(match_id, series_id).batsmen(innings) directly."
+        )
 
-    def bowling_for_match(self, match_id):
-        bowling_stats = []
-        m = Match(match_id)
-        for innings in list(m.full_scorecard['innings'].keys()):
-            stats = next((x for x in m.full_scorecard['innings'][innings]['bowlers'] if x['href'] == self.url), None)
-            if stats:
-                bowling_stats.append({ 'innings': innings, 'overs': next((x['value'] for x in stats['stats'] if x['name'] == 'overs')), 'maidens': next((x['value'] for x in stats['stats'] if x['name'] == 'maidens')), 'conceded': next((x['value'] for x in stats['stats'] if x['name'] == 'conceded')), 'wickets': next((x['value'] for x in stats['stats'] if x['name'] == 'wickets')), 'economy_rate': next((x['value'] for x in stats['stats'] if x['name'] == 'economyRate')), 'dots': next((x['value'] for x in stats['stats'] if x['name'] == 'dots'), None), 'fours_conceded': next((x['value'] for x in stats['stats'] if x['name'] == 'foursConceded'), None), 'sixes_conceded': next((x['value'] for x in stats['stats'] if x['name'] == 'sixesConceded'), None), 'wides': next((x['value'] for x in stats['stats'] if x['name'] == 'wides'), None), 'no_balls': next((x['value'] for x in stats['stats'] if x['name'] == 'noballs'), None)})
-        return bowling_stats
+    def bowling_for_match(self, match_id, series_id):
+        """
+        .. deprecated::
+            This method is not implemented against the current ESPN Cricinfo API.
+            Use Match(match_id, series_id).bowlers(innings) directly.
+        """
+        warnings.warn(
+            "bowling_for_match is deprecated and not implemented against the current API.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        raise NotImplementedError(
+            "bowling_for_match is not implemented against the current ESPN Cricinfo API. "
+            "Use Match(match_id, series_id).bowlers(innings) directly."
+        )
 
     def get_career_averages(self, file_name=None, match_format=11, data_type='allround') :
 

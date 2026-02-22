@@ -1,5 +1,6 @@
 import json
 import unittest
+import warnings
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -130,3 +131,31 @@ class TestPlayerIntegration:
     def test_live_cricinfo_id(self):
         player = Player(253802)
         assert player.cricinfo_id == "253802"
+
+
+class TestPlayerDeprecatedMethods(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.player = _make_player()
+
+    def test_in_team_for_match_raises_not_implemented(self):
+        with self.assertRaises(NotImplementedError):
+            self.player.in_team_for_match(1478914, 1478874)
+
+    def test_batting_for_match_raises_not_implemented(self):
+        with self.assertRaises(NotImplementedError):
+            self.player.batting_for_match(1478914, 1478874)
+
+    def test_bowling_for_match_raises_not_implemented(self):
+        with self.assertRaises(NotImplementedError):
+            self.player.bowling_for_match(1478914, 1478874)
+
+    def test_in_team_for_match_emits_deprecation_warning(self):
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            try:
+                self.player.in_team_for_match(1478914, 1478874)
+            except NotImplementedError:
+                pass
+            self.assertTrue(any(issubclass(x.category, DeprecationWarning) for x in w))
