@@ -28,7 +28,7 @@ class Series(object):
     def get_json(self, url):
         r = requests.get(url,headers=self.headers)
         if r.status_code == 404:
-            raise "Not Found"
+            raise NoSeriesError("Series not found")
         else:
             return r.json()
 
