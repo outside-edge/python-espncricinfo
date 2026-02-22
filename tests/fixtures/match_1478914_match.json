@@ -1,0 +1,797 @@
+{
+  "_uid": 119715,
+  "id": 119715,
+  "objectId": 1478914,
+  "scribeId": 1478914,
+  "slug": "australia-women-vs-india-women-3rd-t20i",
+  "stage": "FINISHED",
+  "state": "POST",
+  "internationalClassId": 10,
+  "generalClassId": 17,
+  "subClassId": null,
+  "season": "2025/26",
+  "title": "3rd T20I",
+  "floodlit": "night",
+  "startDate": "2026-02-21T00:00:00.000Z",
+  "endDate": "2026-02-21T00:00:00.000Z",
+  "startTime": "2026-02-21T08:15:00.000Z",
+  "timePublished": true,
+  "scheduleNote": "",
+  "isCancelled": false,
+  "coverage": "Y",
+  "coverageNote": "",
+  "liveStreamUrl": null,
+  "countryLiveStreamUrl": {},
+  "highlightsUrl": null,
+  "countryHighlightsUrl": {},
+  "status": "RESULT",
+  "statusText": "IND Women won by 17 runs",
+  "statusEng": "RESULT",
+  "internationalNumber": "002676",
+  "generalNumber": null,
+  "winnerTeamId": 1863,
+  "tossWinnerTeamId": 1863,
+  "tossWinnerChoice": 1,
+  "tiebreakerTeamId": null,
+  "resultStatus": 1,
+  "liveInning": 2,
+  "liveInningPredictions": null,
+  "liveOvers": 19.06,
+  "liveOversPending": null,
+  "liveBalls": 115,
+  "liveRecentBalls": null,
+  "livePlayers": null,
+  "ballsPerOver": 6,
+  "series": {
+    "id": 17094,
+    "objectId": 1478874,
+    "scribeId": 23262,
+    "slug": "india-women-in-australia-2025-26",
+    "name": "India Women in Australia",
+    "longName": "India Women tour of Australia",
+    "alternateName": "India Women in Australia",
+    "longAlternateName": null,
+    "unofficialName": null,
+    "broadcastName": null,
+    "seoName": "India Women tour of Australia 2026",
+    "year": 2026,
+    "typeId": 4,
+    "trophyId": 0,
+    "isTrophy": false,
+    "description": "",
+    "season": "2025/26",
+    "startDate": "2026-02-13T00:00:00.000Z",
+    "endDate": "2026-03-09T00:00:00.000Z",
+    "hasStandings": true,
+    "standingsType": 2,
+    "classSubClasses": [],
+    "totalVideos": 10,
+    "totalSquads": 6,
+    "gamePlayWatch": false
+  },
+  "ground": {
+    "id": 131,
+    "objectId": 56293,
+    "name": "Adelaide Oval",
+    "smallName": "Adelaide",
+    "longName": "Adelaide Oval",
+    "slug": "adelaide-oval",
+    "location": "North Adelaide",
+    "image": {
+      "id": 173155,
+      "objectId": 695353,
+      "slug": "a-general-view-of-the-adelaide-oval",
+      "url": "/lsci/db/PICTURES/CMS/173100/173155.jpg",
+      "width": 900,
+      "height": 600,
+      "caption": "A general view of the Adelaide Oval",
+      "longCaption": "A general view of the Adelaide Oval, South Australia v Tasmania, Sheffield Shield, 3rd day, Adelaide, November 24, 2013",
+      "credit": "Getty Images",
+      "photographer": null,
+      "peerUrls": null
+    },
+    "town": {
+      "id": 2,
+      "objectId": 56292,
+      "name": "Adelaide",
+      "area": "South Australia",
+      "timezone": "Australia/Adelaide"
+    },
+    "country": {
+      "id": 2,
+      "objectId": 2,
+      "name": "Australia",
+      "shortName": "Australia",
+      "abbreviation": "AUS",
+      "slug": "australia"
+    },
+    "capacity": "50,000"
+  },
+  "teams": [
+    {
+      "team": {
+        "id": 1863,
+        "objectId": 1812,
+        "scribeId": 1812,
+        "slug": "india-women",
+        "name": "IND Women",
+        "longName": "India Women",
+        "abbreviation": "IND-W",
+        "unofficialName": "",
+        "imageUrl": "/lsci/db/PICTURES/CMS/381800/381895.png",
+        "isCountry": false,
+        "primaryColor": "#FA8C16",
+        "image": {
+          "id": 381895,
+          "objectId": 1436347,
+          "slug": "india-flag-team-logo",
+          "url": "/lsci/db/PICTURES/CMS/381800/381895.png",
+          "width": 500,
+          "height": 500,
+          "caption": "India flag team logo",
+          "longCaption": "India flag team logo",
+          "credit": "Getty Images",
+          "photographer": null,
+          "peerUrls": null
+        },
+        "country": {
+          "id": 6,
+          "objectId": 6,
+          "name": "India",
+          "shortName": "India",
+          "abbreviation": "IND",
+          "slug": "india"
+        }
+      },
+      "isHome": false,
+      "isLive": false,
+      "score": "176/6",
+      "scoreInfo": null,
+      "inningNumbers": [
+        1
+      ],
+      "points": 2,
+      "sidePlayers": 11,
+      "sideBatsmen": 11,
+      "sideFielders": 11,
+      "captain": {
+        "id": 58198,
+        "objectId": 372317,
+        "name": "H Kaur",
+        "longName": "Harmanpreet Kaur",
+        "mobileName": "Harmanpreet",
+        "indexName": "Kaur, H",
+        "battingName": "H Kaur",
+        "fieldingName": "H Kaur",
+        "slug": "harmanpreet-kaur",
+        "imageUrl": "/lsci/db/PICTURES/CMS/320600/320620.1.png",
+        "headshotImageUrl": "/lsci/db/PICTURES/CMS/320600/320620.png",
+        "dateOfBirth": {
+          "year": 1989,
+          "month": 3,
+          "date": 8
+        },
+        "dateOfDeath": null,
+        "gender": "F",
+        "battingStyles": [
+          "rhb"
+        ],
+        "bowlingStyles": [
+          "ob"
+        ],
+        "longBattingStyles": [
+          "right-hand bat"
+        ],
+        "longBowlingStyles": [
+          "right-arm offbreak"
+        ],
+        "image": {
+          "id": 320620,
+          "objectId": 1261514,
+          "slug": "harmanpreet-kaur-player-page-headshot-cutout-2021",
+          "url": "/lsci/db/PICTURES/CMS/320600/320620.1.png",
+          "width": 160,
+          "height": 136,
+          "caption": "Harmanpreet Kaur player page headshot cutout, 2021",
+          "longCaption": "Harmanpreet Kaur player page headshot cutout, 2021",
+          "credit": null,
+          "photographer": null,
+          "peerUrls": null
+        },
+        "countryTeamId": 6,
+        "playerRoleTypeIds": [
+          10
+        ],
+        "playingRoles": [
+          "batting allrounder"
+        ],
+        "headshotImage": {
+          "id": 320620,
+          "objectId": 1261514,
+          "slug": "harmanpreet-kaur-player-page-headshot-cutout-2021",
+          "url": "/lsci/db/PICTURES/CMS/320600/320620.png",
+          "width": 600,
+          "height": 436,
+          "caption": "Harmanpreet Kaur player page headshot cutout, 2021",
+          "longCaption": "Harmanpreet Kaur player page headshot cutout, 2021",
+          "credit": null,
+          "photographer": null,
+          "peerUrls": {
+            "FILM": null,
+            "WIDE": null,
+            "SQUARE": "/lsci/db/PICTURES/CMS/320600/320620.square.png"
+          }
+        }
+      },
+      "teamOdds": null
+    },
+    {
+      "team": {
+        "id": 289,
+        "objectId": 238,
+        "scribeId": 238,
+        "slug": "australia-women",
+        "name": "AUS Women",
+        "longName": "Australia Women",
+        "abbreviation": "AUS-W",
+        "unofficialName": "",
+        "imageUrl": "/lsci/db/PICTURES/CMS/340400/340493.png",
+        "isCountry": false,
+        "primaryColor": "#0860C4",
+        "image": {
+          "id": 340493,
+          "objectId": 1318684,
+          "slug": "australia-team-flag-latest",
+          "url": "/lsci/db/PICTURES/CMS/340400/340493.png",
+          "width": 500,
+          "height": 500,
+          "caption": "Australia team flag-latest",
+          "longCaption": "Australia team flag-latest",
+          "credit": "Getty Images",
+          "photographer": null,
+          "peerUrls": null
+        },
+        "country": {
+          "id": 2,
+          "objectId": 2,
+          "name": "Australia",
+          "shortName": "Australia",
+          "abbreviation": "AUS",
+          "slug": "australia"
+        }
+      },
+      "isHome": true,
+      "isLive": false,
+      "score": "159/9",
+      "scoreInfo": "20 ov, T:177",
+      "inningNumbers": [
+        2
+      ],
+      "points": 0,
+      "sidePlayers": 11,
+      "sideBatsmen": 11,
+      "sideFielders": 11,
+      "captain": {
+        "id": 87729,
+        "objectId": 944373,
+        "name": "S Molineux",
+        "longName": "Sophie Molineux",
+        "mobileName": "Molineux",
+        "indexName": "Molineux,S",
+        "battingName": "S Molineux",
+        "fieldingName": "Molineux",
+        "slug": "sophie-molineux",
+        "imageUrl": "/lsci/db/PICTURES/CMS/321600/321699.1.png",
+        "headshotImageUrl": "/lsci/db/PICTURES/CMS/321600/321699.png",
+        "dateOfBirth": {
+          "year": 1998,
+          "month": 1,
+          "date": 17
+        },
+        "dateOfDeath": null,
+        "gender": "M",
+        "battingStyles": [
+          "lhb"
+        ],
+        "bowlingStyles": [
+          "sla"
+        ],
+        "longBattingStyles": [
+          "left-hand bat"
+        ],
+        "longBowlingStyles": [
+          "slow left-arm orthodox"
+        ],
+        "image": {
+          "id": 321699,
+          "objectId": 1263832,
+          "slug": "sophie-molineux-player-page-headshot-cutout-2021",
+          "url": "/lsci/db/PICTURES/CMS/321600/321699.1.png",
+          "width": 160,
+          "height": 136,
+          "caption": "Sophie Molineux player page headshot cutout, 2021",
+          "longCaption": "Sophie Molineux player page headshot cutout, 2021",
+          "credit": null,
+          "photographer": null,
+          "peerUrls": null
+        },
+        "countryTeamId": 2,
+        "playerRoleTypeIds": [
+          11
+        ],
+        "playingRoles": [
+          "bowling allrounder"
+        ],
+        "headshotImage": {
+          "id": 321699,
+          "objectId": 1263832,
+          "slug": "sophie-molineux-player-page-headshot-cutout-2021",
+          "url": "/lsci/db/PICTURES/CMS/321600/321699.png",
+          "width": 600,
+          "height": 436,
+          "caption": "Sophie Molineux player page headshot cutout, 2021",
+          "longCaption": "Sophie Molineux player page headshot cutout, 2021",
+          "credit": null,
+          "photographer": null,
+          "peerUrls": {
+            "FILM": null,
+            "WIDE": null,
+            "SQUARE": "/lsci/db/PICTURES/CMS/321600/321699.square.png"
+          }
+        }
+      },
+      "teamOdds": null
+    }
+  ],
+  "dayType": "SINGLE",
+  "format": "T20",
+  "headToHeadSource": "feedback",
+  "previewStoryId": null,
+  "reportStoryId": 344265,
+  "liveBlogStoryId": null,
+  "fantasyPickStoryId": null,
+  "reportStory": {
+    "storyId": 344265,
+    "day": null
+  },
+  "liveBlogStory": null,
+  "drawOdds": null,
+  "isSuperOver": false,
+  "isScheduledInningsComplete": true,
+  "insightsEnabled": false,
+  "hasMatchPlayers": true,
+  "hasCommentary": true,
+  "hasScorecard": true,
+  "hasStandings": true,
+  "hasSuperStats": true,
+  "hasGameboard": true,
+  "hasFanRatings": true,
+  "hasGalleries": false,
+  "hasImages": true,
+  "hasVideos": true,
+  "hasStories": true,
+  "languages": [
+    "hi"
+  ],
+  "generatedAt": "2026-02-22T02:57:21.528Z",
+  "scorecardSource": "emma",
+  "ballByBallSource": "feedback",
+  "finalType": 0,
+  "endTime": "2026-02-21T15:35:39.161Z",
+  "statusData": {
+    "statusTextLangKey": "match_status_text_won_runs",
+    "statusTextLangData": {
+      "firstBattingTeamId": 1863,
+      "tossWinnerTeamId": 1863,
+      "tiebreakerTeamId": null,
+      "winnerTeamId": 1863,
+      "currentBattingTeamId": 289,
+      "wonByRuns": 17,
+      "wonByWickets": 1,
+      "wonByBalls": 0,
+      "day": null,
+      "session": null,
+      "crr": null,
+      "rrr": null,
+      "rpb": null,
+      "rrpb": null,
+      "requiredRuns": null,
+      "remainingBalls": null,
+      "remainingOvers": null,
+      "leadRuns": null,
+      "trailRuns": null,
+      "amountType": null,
+      "rainRuleType": null
+    }
+  },
+  "scheduledDays": 1,
+  "scheduledOvers": 20,
+  "scheduledInnings": 1,
+  "hoursInfo": "",
+  "daysInfo": "21 February 2026",
+  "umpires": [
+    {
+      "team": {
+        "id": 2,
+        "objectId": 2,
+        "scribeId": 2,
+        "slug": "australia",
+        "name": "Australia",
+        "longName": "Australia",
+        "abbreviation": "AUS",
+        "unofficialName": "",
+        "imageUrl": "/lsci/db/PICTURES/CMS/340400/340493.png",
+        "isCountry": true,
+        "primaryColor": "#f3f702",
+        "image": {
+          "id": 340493,
+          "objectId": 1318684,
+          "slug": "australia-team-flag-latest",
+          "url": "/lsci/db/PICTURES/CMS/340400/340493.png",
+          "width": 500,
+          "height": 500,
+          "caption": "Australia team flag-latest",
+          "longCaption": "Australia team flag-latest",
+          "credit": "Getty Images",
+          "photographer": null,
+          "peerUrls": null
+        },
+        "country": {
+          "id": 2,
+          "objectId": 2,
+          "name": "Australia",
+          "shortName": "Australia",
+          "abbreviation": "AUS",
+          "slug": "australia"
+        }
+      },
+      "player": {
+        "id": 104314,
+        "objectId": 1169355,
+        "name": "E Sheridan",
+        "longName": "Eloise Sheridan",
+        "mobileName": "Sheridan",
+        "indexName": "Sheridan, E",
+        "battingName": "E Sheridan",
+        "fieldingName": "Sheridan",
+        "slug": "eloise-sheridan",
+        "imageUrl": null,
+        "headshotImageUrl": null,
+        "dateOfBirth": {
+          "year": 1985,
+          "month": 9,
+          "date": 3
+        },
+        "dateOfDeath": null,
+        "gender": "F",
+        "battingStyles": [],
+        "bowlingStyles": [],
+        "longBattingStyles": [],
+        "longBowlingStyles": [],
+        "image": null,
+        "countryTeamId": 2,
+        "playerRoleTypeIds": [],
+        "playingRoles": [],
+        "headshotImage": null
+      }
+    },
+    {
+      "team": {
+        "id": 2,
+        "objectId": 2,
+        "scribeId": 2,
+        "slug": "australia",
+        "name": "Australia",
+        "longName": "Australia",
+        "abbreviation": "AUS",
+        "unofficialName": "",
+        "imageUrl": "/lsci/db/PICTURES/CMS/340400/340493.png",
+        "isCountry": true,
+        "primaryColor": "#f3f702",
+        "image": {
+          "id": 340493,
+          "objectId": 1318684,
+          "slug": "australia-team-flag-latest",
+          "url": "/lsci/db/PICTURES/CMS/340400/340493.png",
+          "width": 500,
+          "height": 500,
+          "caption": "Australia team flag-latest",
+          "longCaption": "Australia team flag-latest",
+          "credit": "Getty Images",
+          "photographer": null,
+          "peerUrls": null
+        },
+        "country": {
+          "id": 2,
+          "objectId": 2,
+          "name": "Australia",
+          "shortName": "Australia",
+          "abbreviation": "AUS",
+          "slug": "australia"
+        }
+      },
+      "player": {
+        "id": 68702,
+        "objectId": 588730,
+        "name": "PJ Gillespie",
+        "longName": "Phillip Gillespie",
+        "mobileName": "Gillespie",
+        "indexName": "Gillespie, PJ",
+        "battingName": "PJ Gillespie",
+        "fieldingName": "Gillespie",
+        "slug": "phillip-gillespie",
+        "imageUrl": null,
+        "headshotImageUrl": null,
+        "dateOfBirth": {
+          "year": 1975,
+          "month": 9,
+          "date": 23
+        },
+        "dateOfDeath": null,
+        "gender": "M",
+        "battingStyles": [],
+        "bowlingStyles": [],
+        "longBattingStyles": [],
+        "longBowlingStyles": [],
+        "image": null,
+        "countryTeamId": 2,
+        "playerRoleTypeIds": [],
+        "playingRoles": [],
+        "headshotImage": null
+      }
+    }
+  ],
+  "tvUmpires": [
+    {
+      "team": {
+        "id": 5,
+        "objectId": 5,
+        "scribeId": 5,
+        "slug": "new-zealand",
+        "name": "New Zealand",
+        "longName": "New Zealand",
+        "abbreviation": "NZ",
+        "unofficialName": "",
+        "imageUrl": "/lsci/db/PICTURES/CMS/340500/340505.png",
+        "isCountry": true,
+        "primaryColor": "#b7c0c8",
+        "image": {
+          "id": 340505,
+          "objectId": 1318717,
+          "slug": "new-zealand-team-flag-latest",
+          "url": "/lsci/db/PICTURES/CMS/340500/340505.png",
+          "width": 500,
+          "height": 500,
+          "caption": "New Zealand team flag-latest",
+          "longCaption": "New Zealand team flag-latest",
+          "credit": "Getty Images",
+          "photographer": null,
+          "peerUrls": null
+        },
+        "country": {
+          "id": 5,
+          "objectId": 5,
+          "name": "New Zealand",
+          "shortName": "New Zealand",
+          "abbreviation": "NZ",
+          "slug": "new-zealand"
+        }
+      },
+      "player": {
+        "id": 74693,
+        "objectId": 701735,
+        "name": "KD Cotton",
+        "longName": "Kim Cotton",
+        "mobileName": "Cotton",
+        "indexName": "Cotton, KD",
+        "battingName": "KD Cotton",
+        "fieldingName": "Cotton",
+        "slug": "kim-cotton",
+        "imageUrl": "/lsci/db/PICTURES/CMS/282200/282294.1.jpg",
+        "headshotImageUrl": null,
+        "dateOfBirth": {
+          "year": 1978,
+          "month": 2,
+          "date": 24
+        },
+        "dateOfDeath": null,
+        "gender": "F",
+        "battingStyles": [],
+        "bowlingStyles": [],
+        "longBattingStyles": [],
+        "longBowlingStyles": [],
+        "image": {
+          "id": 282294,
+          "objectId": 1165092,
+          "slug": "kim-cotton-umpire-portrait",
+          "url": "/lsci/db/PICTURES/CMS/282200/282294.1.jpg",
+          "width": 160,
+          "height": 203,
+          "caption": "Kim Cotton umpire portrait",
+          "longCaption": "Kim Cotton umpire portrait",
+          "credit": "Getty Images",
+          "photographer": null,
+          "peerUrls": null
+        },
+        "countryTeamId": 5,
+        "playerRoleTypeIds": [],
+        "playingRoles": [],
+        "headshotImage": null
+      }
+    }
+  ],
+  "reserveUmpires": [
+    {
+      "team": {
+        "id": 2,
+        "objectId": 2,
+        "scribeId": 2,
+        "slug": "australia",
+        "name": "Australia",
+        "longName": "Australia",
+        "abbreviation": "AUS",
+        "unofficialName": "",
+        "imageUrl": "/lsci/db/PICTURES/CMS/340400/340493.png",
+        "isCountry": true,
+        "primaryColor": "#f3f702",
+        "image": {
+          "id": 340493,
+          "objectId": 1318684,
+          "slug": "australia-team-flag-latest",
+          "url": "/lsci/db/PICTURES/CMS/340400/340493.png",
+          "width": 500,
+          "height": 500,
+          "caption": "Australia team flag-latest",
+          "longCaption": "Australia team flag-latest",
+          "credit": "Getty Images",
+          "photographer": null,
+          "peerUrls": null
+        },
+        "country": {
+          "id": 2,
+          "objectId": 2,
+          "name": "Australia",
+          "shortName": "Australia",
+          "abbreviation": "AUS",
+          "slug": "australia"
+        }
+      },
+      "player": {
+        "id": 116249,
+        "objectId": 1405855,
+        "name": "C Haysom",
+        "longName": "Clare Haysom",
+        "mobileName": "Haysom",
+        "indexName": "Haysom, C",
+        "battingName": "C Haysom",
+        "fieldingName": "Haysom",
+        "slug": "clare-haysom",
+        "imageUrl": null,
+        "headshotImageUrl": null,
+        "dateOfBirth": null,
+        "dateOfDeath": null,
+        "gender": "M",
+        "battingStyles": [],
+        "bowlingStyles": [],
+        "longBattingStyles": [],
+        "longBowlingStyles": [],
+        "image": null,
+        "countryTeamId": 2,
+        "playerRoleTypeIds": [],
+        "playingRoles": [],
+        "headshotImage": null
+      }
+    }
+  ],
+  "matchReferees": [
+    {
+      "team": {
+        "id": 2,
+        "objectId": 2,
+        "scribeId": 2,
+        "slug": "australia",
+        "name": "Australia",
+        "longName": "Australia",
+        "abbreviation": "AUS",
+        "unofficialName": "",
+        "imageUrl": "/lsci/db/PICTURES/CMS/340400/340493.png",
+        "isCountry": true,
+        "primaryColor": "#f3f702",
+        "image": {
+          "id": 340493,
+          "objectId": 1318684,
+          "slug": "australia-team-flag-latest",
+          "url": "/lsci/db/PICTURES/CMS/340400/340493.png",
+          "width": 500,
+          "height": 500,
+          "caption": "Australia team flag-latest",
+          "longCaption": "Australia team flag-latest",
+          "credit": "Getty Images",
+          "photographer": null,
+          "peerUrls": null
+        },
+        "country": {
+          "id": 2,
+          "objectId": 2,
+          "name": "Australia",
+          "shortName": "Australia",
+          "abbreviation": "AUS",
+          "slug": "australia"
+        }
+      },
+      "player": {
+        "id": 89081,
+        "objectId": 959295,
+        "name": "K Hannam",
+        "longName": "Kent Hannam",
+        "mobileName": "Hannam",
+        "indexName": "Hannam, K",
+        "battingName": "K Hannam",
+        "fieldingName": "Hannam",
+        "slug": "kent-hannam",
+        "imageUrl": null,
+        "headshotImageUrl": null,
+        "dateOfBirth": {
+          "year": 1969,
+          "month": 11,
+          "date": 4
+        },
+        "dateOfDeath": null,
+        "gender": "M",
+        "battingStyles": [],
+        "bowlingStyles": [],
+        "longBattingStyles": [],
+        "longBowlingStyles": [],
+        "image": null,
+        "countryTeamId": 2,
+        "playerRoleTypeIds": [],
+        "playingRoles": [],
+        "headshotImage": null
+      }
+    }
+  ],
+  "debutPlayers": null,
+  "replacementPlayers": null,
+  "otherSerieses": [
+    {
+      "id": 17095,
+      "objectId": 1478875,
+      "scribeId": 23261,
+      "slug": "india-women-in-australia-t20is-2025-26",
+      "name": "India Women in Australia T20Is",
+      "longName": "India Women in Australia T20I Series",
+      "alternateName": null,
+      "longAlternateName": null,
+      "unofficialName": null,
+      "broadcastName": null,
+      "seoName": "",
+      "year": 2026,
+      "typeId": 1,
+      "trophyId": 0,
+      "isTrophy": false,
+      "description": "",
+      "season": "2025/26",
+      "startDate": "2026-02-15T00:00:00.000Z",
+      "endDate": "2026-02-21T00:00:00.000Z",
+      "hasStandings": true,
+      "standingsType": 2,
+      "classSubClasses": [
+        {
+          "classId": 10,
+          "subClassId": null
+        }
+      ],
+      "totalVideos": 0,
+      "totalSquads": 2,
+      "gamePlayWatch": false
+    }
+  ],
+  "actualDays": 1,
+  "hawkeyeSource": null,
+  "commentarySource": "cms",
+  "liveCommentator": "Alex Malcolm",
+  "liveScorer": "Chetan Kumar",
+  "liveDay": 1,
+  "liveSession": 1,
+  "hasFollowon": false
+}

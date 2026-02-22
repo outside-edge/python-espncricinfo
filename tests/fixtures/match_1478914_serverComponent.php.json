@@ -1,0 +1,19 @@
+{
+  "pageFiles": [
+    {
+      "src": "https://dcf.espn.com/TWDC-DTCI/prod/code/0b2d4a00402606798589ca18c995b091.js?conditionId0=4886771"
+    },
+    {
+      "src": "https://dcf.espn.com/TWDC-DTCI/prod/code/3b71341981d2c3b518d4a4c5f4597627.js?conditionId0=4905157"
+    },
+    {
+      "src": "https://dcf.espn.com/TWDC-DTCI/prod/code/b1628a139060f031708ca6f8b26d1398.js?conditionId0=4886771"
+    },
+    {
+      "src": "https://dcf.espn.com/TWDC-DTCI/prod/code/ee00cbb1c51732236f4cb00852a1104f.js?conditionId0=4871166"
+    }
+  ],
+  "dataDefinitionIds": [
+    63847
+  ]
+}

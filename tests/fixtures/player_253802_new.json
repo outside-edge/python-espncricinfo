@@ -1,0 +1,16 @@
+{
+  "content": {
+    "teams": [
+      {
+        "team": {
+          "longName": "India"
+        }
+      },
+      {
+        "team": {
+          "longName": "Royal Challengers Bangalore"
+        }
+      }
+    ]
+  }
+}
