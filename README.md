@@ -12,8 +12,20 @@ The current version of this library is 1.0.0. It is very much a work in progress
 
 ### Installation
 
-```python
-pip3 install python-espncricinfo
+```shell
+uv add python-espncricinfo
+```
+
+Or with pip:
+
+```shell
+pip install python-espncricinfo
+```
+
+After installation, install the Playwright WebKit browser (required for fetching match data):
+
+```shell
+uv run playwright install webkit
 ```
 
 ### Usage
