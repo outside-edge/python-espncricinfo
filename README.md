@@ -8,7 +8,7 @@ A Python 3 client for ESPNCricinfo match, series and player data. The library us
 
 Disclaimer: This library is not intended for commercial use and neither it nor its creator has any affiliation with ESPNCricInfo. The [LICENSE](LICENSE.txt) for this library applies only to the code, not to the data.
 
-The current version of this library is 0.6.1. It is very much a work in progress, and bug reports and feature requests are welcomed.
+The current version of this library is 1.0.0. It is very much a work in progress, and bug reports and feature requests are welcomed.
 
 ### Installation
 
@@ -22,22 +22,26 @@ For a summary of live matches, create an instance of the `Summary` class:
 
 ```python
 >>> from espncricinfo.summary import Summary
->>> from espncricinfo.match import Match
 >>> s = Summary()
 >>> s.matches
-[(1478874, 1478914), ...]
->>> for series_id, match_id in s.matches:
-...     m = Match(match_id, series_id)
+[MatchRef(series_id=1478874, match_id=1478914), ...]
+>>> for ref in s.matches:
+...     m = ref.to_match()
 ...     print(m.description)
+
+# Tuple unpacking also works:
+>>> for series_id, match_id in s.matches:
+...     print(series_id, match_id)
 ```
 
 For individual matches, pass in both the match ID and series ID. These can be discovered from `get_recent_matches()`, or read from a match page URL (the two numeric IDs in the URL path):
 
 ```python
 >>> from espncricinfo.match import Match
->>> # Get recent matches as (series_id, match_id) tuples
+>>> from espncricinfo.match_ref import MatchRef
+>>> # Get recent matches as MatchRef objects
 >>> Match.get_recent_matches(date="2026-02-06")
-[(1478874, 1478914), ...]
+[MatchRef(series_id=1478874, match_id=1478914), ...]
 >>> # Construct a match directly
 >>> m = Match(1478914, 1478874)
 >>> m.description
