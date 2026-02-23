@@ -3,6 +3,7 @@ import asyncio
 from datetime import date as _date
 from playwright.async_api import async_playwright
 from espncricinfo.exceptions import MatchNotFoundError, NoScorecardError
+from espncricinfo.match_ref import MatchRef
 
 
 async def _async_playwright_fetch(url):
@@ -717,7 +718,7 @@ class Match(object):
             try:
                 series_id = m["series"]["objectId"]
                 match_id = m["objectId"]
-                results.append((series_id, match_id))
+                results.append(MatchRef(series_id=series_id, match_id=match_id))
             except (KeyError, TypeError):
                 continue
         return results

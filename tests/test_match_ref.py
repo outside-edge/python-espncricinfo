@@ -121,3 +121,36 @@ class TestMatchRefToMatch(unittest.TestCase):
         with patch("espncricinfo.match._playwright_fetch", return_value=next_data):
             m = ref.to_match()
         self.assertEqual(m.match_id, 1478914)
+
+
+class TestGetRecentMatchesReturnsMatchRef(unittest.TestCase):
+
+    def test_get_recent_matches_returns_list(self):
+        """get_recent_matches should return a list (may be empty if fixture has no results data)."""
+        import json
+        from pathlib import Path
+        from espncricinfo.match import Match
+
+        fixture_path = Path(__file__).parent / "fixtures" / "match_1478914_next_data.json"
+        next_data = json.load(open(fixture_path))
+
+        with patch("espncricinfo.match._playwright_fetch", return_value=next_data):
+            results = Match.get_recent_matches("2026-02-06")
+
+        self.assertIsInstance(results, list)
+
+    def test_get_recent_matches_items_are_match_refs(self):
+        """Any items returned must be MatchRef objects, not tuples."""
+        import json
+        from pathlib import Path
+        from espncricinfo.match import Match
+
+        fixture_path = Path(__file__).parent / "fixtures" / "match_1478914_next_data.json"
+        next_data = json.load(open(fixture_path))
+
+        with patch("espncricinfo.match._playwright_fetch", return_value=next_data):
+            results = Match.get_recent_matches("2026-02-06")
+
+        for r in results:
+            self.assertIsInstance(r, MatchRef)
+            self.assertNotIsInstance(r, tuple)
