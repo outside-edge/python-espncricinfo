@@ -709,7 +709,7 @@ class Match(object):
             "minutes":     raw.get("minutes") if batted else None,
             "fours":       raw.get("fours") if batted else None,
             "sixes":       raw.get("sixes") if batted else None,
-            "strike_rate": raw.get("strikerate") if batted else None,
+            "strike_rate": float(sr) if (batted and (sr := raw.get("strikerate")) is not None) else None,
             "is_out":      is_out,
             "dismissal":   dismissal,
             "batted":      batted,

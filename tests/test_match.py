@@ -335,5 +335,19 @@ class TestMatchScorecardProperties(unittest.TestCase):
         self.assertIsInstance(entry["player_id"], int)
 
     def test_batting_scorecard_strike_rate_is_float(self):
-        entry = self.match.batting_scorecard[0][0]
+        # batting_scorecard[0][4] is Harmanpreet Kaur whose strikerate is
+        # returned by the ESPN API as integer 50; verify it is coerced to float.
+        entry = self.match.batting_scorecard[0][4]
         self.assertIsInstance(entry["strike_rate"], float)
+
+    def test_batting_scorecard_empty_innings_returns_empty_list(self):
+        from unittest.mock import patch
+        # Patch batsmen to return None for innings 2
+        original_batsmen = self.match.batsmen
+        def patched_batsmen(i):
+            if i == 2:
+                return None
+            return original_batsmen(i)
+        with patch.object(self.match, 'batsmen', side_effect=patched_batsmen):
+            sc = self.match.batting_scorecard
+        self.assertEqual(sc[1], [])
