@@ -716,7 +716,7 @@ class Match(object):
         }
 
     @property
-    def batting_scorecard(self) -> list:
+    def batting_scorecard(self) -> list[list[dict]]:
         """
         Return batting scorecard for all innings as ``list[list[dict]]``.
 
@@ -736,6 +736,49 @@ class Match(object):
             raw_list = self.batsmen(i)
             if raw_list:
                 result.append([self._batting_entry(r) for r in raw_list])
+            else:
+                result.append([])
+        return result
+
+    def _bowling_entry(self, raw: dict) -> dict:
+        """Transform a raw inningBowlers dict into a clean flat dict."""
+        player = raw.get("player") or {}
+        economy = raw.get("economy")
+        overs = raw.get("overs")
+        return {
+            "name":      player.get("name"),
+            "full_name": player.get("longName"),
+            "player_id": player.get("objectId"),
+            "overs":     float(overs) if overs is not None else None,
+            "maidens":   raw.get("maidens"),
+            "runs":      raw.get("conceded"),
+            "wickets":   raw.get("wickets"),
+            "economy":   float(economy) if economy is not None else None,
+            "wides":     raw.get("wides"),
+            "no_balls":  raw.get("noballs"),
+            "dots":      raw.get("dots"),
+        }
+
+    @property
+    def bowling_scorecard(self) -> list[list[dict]]:
+        """
+        Return bowling scorecard for all innings as ``list[list[dict]]``.
+
+        Outer list is indexed by innings order; inner list has one entry
+        per bowler.
+
+        Example::
+
+            for i, innings in enumerate(m.bowling_scorecard, 1):
+                print(f"Innings {i}:")
+                for b in innings:
+                    print(f"  {b['name']}: {b['wickets']}/{b['runs']} ({b['overs']} ov)")
+        """
+        result = []
+        for i in range(1, len(self.innings) + 1):
+            raw_list = self.bowlers(i)
+            if raw_list:
+                result.append([self._bowling_entry(r) for r in raw_list])
             else:
                 result.append([])
         return result

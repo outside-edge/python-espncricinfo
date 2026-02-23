@@ -351,3 +351,44 @@ class TestMatchScorecardProperties(unittest.TestCase):
         with patch.object(self.match, 'batsmen', side_effect=patched_batsmen):
             sc = self.match.batting_scorecard
         self.assertEqual(sc[1], [])
+
+    # ---- bowling_scorecard ----
+
+    def test_bowling_scorecard_is_list_of_2_innings(self):
+        sc = self.match.bowling_scorecard
+        self.assertIsInstance(sc, list)
+        self.assertEqual(len(sc), 2)
+
+    def test_bowling_scorecard_innings_are_nonempty_lists(self):
+        for innings in self.match.bowling_scorecard:
+            self.assertIsInstance(innings, list)
+            self.assertGreater(len(innings), 0)
+
+    def test_bowling_scorecard_entry_has_required_keys(self):
+        entry = self.match.bowling_scorecard[0][0]
+        for key in ("name", "full_name", "player_id", "overs", "maidens",
+                    "runs", "wickets", "economy", "wides", "no_balls", "dots"):
+            self.assertIn(key, entry)
+
+    def test_bowling_scorecard_first_bowler_values(self):
+        # Darcie Brown bowled first innings
+        entry = self.match.bowling_scorecard[0][0]
+        self.assertEqual(entry["name"], "D Brown")
+        self.assertIsInstance(entry["wickets"], int)
+        self.assertIsInstance(entry["overs"], float)
+
+    def test_bowling_scorecard_economy_is_float_or_none(self):
+        entry = self.match.bowling_scorecard[0][0]
+        self.assertTrue(
+            entry["economy"] is None or isinstance(entry["economy"], float)
+        )
+
+    def test_bowling_scorecard_empty_innings_returns_empty_list(self):
+        original_bowlers = self.match.bowlers
+        def patched_bowlers(i):
+            if i == 2:
+                return None
+            return original_bowlers(i)
+        with patch.object(self.match, 'bowlers', side_effect=patched_bowlers):
+            sc = self.match.bowling_scorecard
+        self.assertEqual(sc[1], [])
