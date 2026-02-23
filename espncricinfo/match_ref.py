@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from espncricinfo.match import Match
 
 
-@dataclass
+@dataclass(frozen=True)
 class MatchRef:
     """
     A lightweight reference to an ESPN Cricinfo match.
@@ -30,8 +30,8 @@ class MatchRef:
     match_id: int
 
     def __post_init__(self):
-        self.series_id = int(self.series_id)
-        self.match_id = int(self.match_id)
+        object.__setattr__(self, "series_id", int(self.series_id))
+        object.__setattr__(self, "match_id", int(self.match_id))
 
     def __iter__(self):
         """Yield series_id then match_id — enables tuple unpacking."""

@@ -28,6 +28,19 @@ class TestMatchRefFields(unittest.TestCase):
         self.assertIn("1478874", repr(ref))
         self.assertIn("1478914", repr(ref))
 
+    def test_is_hashable(self):
+        ref = MatchRef(series_id=1478874, match_id=1478914)
+        # Should be usable in a set and as a dict key
+        s = {ref}
+        self.assertIn(ref, s)
+        d = {ref: "test"}
+        self.assertEqual(d[ref], "test")
+
+    def test_is_immutable(self):
+        ref = MatchRef(series_id=1478874, match_id=1478914)
+        with self.assertRaises(Exception):
+            ref.series_id = 999
+
 
 class TestMatchRefSerialization(unittest.TestCase):
 

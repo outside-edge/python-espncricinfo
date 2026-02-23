@@ -690,9 +690,9 @@ class Match(object):
     # ------------------------------------------------------------------
 
     @staticmethod
-    def get_recent_matches(date=None):
+    def get_recent_matches(date=None) -> list[MatchRef]:
         """
-        Return a list of (series_id, match_id) tuples from the results page.
+        Return a list of :class:`~espncricinfo.match_ref.MatchRef` objects from the results page.
 
         Fetches https://www.espncricinfo.com/live-cricket-match-results
         (optionally with ?date=YYYY-MM-DD) and extracts match data from
