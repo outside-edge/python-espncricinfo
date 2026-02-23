@@ -55,3 +55,12 @@ class MatchRef:
     def from_csv_row(cls, row) -> "MatchRef":
         """Construct from a 2-element sequence ``[series_id, match_id]``."""
         return cls(series_id=row[0], match_id=row[1])
+
+    def to_match(self) -> "Match":
+        """
+        Hydrate a full :class:`~espncricinfo.match.Match` object.
+
+        Triggers a Playwright fetch — use only when you need full match data.
+        """
+        from espncricinfo.match import Match
+        return Match(self.match_id, self.series_id)

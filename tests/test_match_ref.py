@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 from espncricinfo.match_ref import MatchRef
 
 
@@ -91,3 +92,32 @@ class TestMatchRefSerialization(unittest.TestCase):
         ref = MatchRef.from_csv_row(("1478874", "1478914"))
         self.assertEqual(ref.series_id, 1478874)
         self.assertEqual(ref.match_id, 1478914)
+
+
+class TestMatchRefToMatch(unittest.TestCase):
+
+    def test_to_match_returns_match_instance(self):
+        import json
+        from pathlib import Path
+        from espncricinfo.match import Match
+
+        fixture_path = Path(__file__).parent / "fixtures" / "match_1478914_next_data.json"
+        next_data = json.load(open(fixture_path))
+
+        ref = MatchRef(series_id=1478874, match_id=1478914)
+        with patch("espncricinfo.match._playwright_fetch", return_value=next_data):
+            m = ref.to_match()
+        self.assertIsInstance(m, Match)
+
+    def test_to_match_passes_correct_ids(self):
+        import json
+        from pathlib import Path
+        from espncricinfo.match import Match
+
+        fixture_path = Path(__file__).parent / "fixtures" / "match_1478914_next_data.json"
+        next_data = json.load(open(fixture_path))
+
+        ref = MatchRef(series_id=1478874, match_id=1478914)
+        with patch("espncricinfo.match._playwright_fetch", return_value=next_data):
+            m = ref.to_match()
+        self.assertEqual(m.match_id, 1478914)
