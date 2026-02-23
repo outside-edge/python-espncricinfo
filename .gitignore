@@ -3,3 +3,16 @@
 *.swp
 test_settings.py
 cricinfo/**
+__pycache__/
+*.egg-info/
+build/
+dist/
+.eggs/
+uv.lock
+Pipfile
+Pipfile.lock
+*.egg
+comms.json
+matches.csv
+matches.json
+fixes.py

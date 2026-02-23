@@ -115,4 +115,4 @@ uv run playwright install webkit
 
 ### Requirements
 
-See requirements.txt
+Dependencies are managed via `pyproject.toml`. See the Installation section above.
