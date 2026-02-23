@@ -297,3 +297,43 @@ class TestMatchIntegration:
     def test_live_ground_name(self):
         m = Match(1478914, 1478874)
         assert m.ground_name == "Adelaide Oval"
+
+
+class TestMatchScorecardProperties(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.match = _make_match()
+
+    # ---- batting_scorecard ----
+
+    def test_batting_scorecard_is_list_of_2_innings(self):
+        sc = self.match.batting_scorecard
+        self.assertIsInstance(sc, list)
+        self.assertEqual(len(sc), 2)
+
+    def test_batting_scorecard_innings_are_nonempty_lists(self):
+        for innings in self.match.batting_scorecard:
+            self.assertIsInstance(innings, list)
+            self.assertGreater(len(innings), 0)
+
+    def test_batting_scorecard_entry_has_required_keys(self):
+        entry = self.match.batting_scorecard[0][0]
+        for key in ("name", "full_name", "player_id", "runs", "balls",
+                    "minutes", "fours", "sixes", "strike_rate",
+                    "is_out", "dismissal", "batted"):
+            self.assertIn(key, entry)
+
+    def test_batting_scorecard_first_batsman_values(self):
+        # Smriti Mandhana: 82 runs, 55 balls, out caught Gardner b Sutherland
+        entry = self.match.batting_scorecard[0][0]
+        self.assertEqual(entry["runs"], 82)
+        self.assertEqual(entry["balls"], 55)
+        self.assertTrue(entry["is_out"])
+        self.assertIn("Gardner", entry["dismissal"])
+        self.assertTrue(entry["batted"])
+        self.assertIsInstance(entry["player_id"], int)
+
+    def test_batting_scorecard_strike_rate_is_float(self):
+        entry = self.match.batting_scorecard[0][0]
+        self.assertIsInstance(entry["strike_rate"], float)

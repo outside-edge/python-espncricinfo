@@ -686,6 +686,61 @@ class Match(object):
             return None
 
     # ------------------------------------------------------------------
+    # Scorecard helpers
+    # ------------------------------------------------------------------
+
+    def _batting_entry(self, raw: dict) -> dict:
+        """Transform a raw inningBatsmen dict into a clean flat dict."""
+        player = raw.get("player") or {}
+        batted = raw.get("battedType") == "yes"
+        is_out = bool(raw.get("isOut"))
+        if not batted:
+            dismissal = "did not bat"
+        elif is_out:
+            dismissal = (raw.get("dismissalText") or {}).get("long", "out")
+        else:
+            dismissal = "not out"
+        return {
+            "name":        player.get("name"),
+            "full_name":   player.get("longName"),
+            "player_id":   player.get("objectId"),
+            "runs":        raw.get("runs") if batted else None,
+            "balls":       raw.get("balls") if batted else None,
+            "minutes":     raw.get("minutes") if batted else None,
+            "fours":       raw.get("fours") if batted else None,
+            "sixes":       raw.get("sixes") if batted else None,
+            "strike_rate": raw.get("strikerate") if batted else None,
+            "is_out":      is_out,
+            "dismissal":   dismissal,
+            "batted":      batted,
+        }
+
+    @property
+    def batting_scorecard(self) -> list:
+        """
+        Return batting scorecard for all innings as ``list[list[dict]]``.
+
+        Outer list is indexed by innings order; inner list has one entry
+        per batsman. Players who did not bat have ``batted=False`` and
+        numeric fields as ``None``.
+
+        Example::
+
+            for i, innings in enumerate(m.batting_scorecard, 1):
+                print(f"Innings {i}:")
+                for b in innings:
+                    print(f"  {b['name']}: {b['runs']} ({b['balls']}) - {b['dismissal']}")
+        """
+        result = []
+        for i in range(1, len(self.innings) + 1):
+            raw_list = self.batsmen(i)
+            if raw_list:
+                result.append([self._batting_entry(r) for r in raw_list])
+            else:
+                result.append([])
+        return result
+
+    # ------------------------------------------------------------------
     # Static helpers
     # ------------------------------------------------------------------
 
