@@ -1,0 +1,21 @@
+[build-system]
+requires = [
+    "setuptools>=42",
+    "wheel"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "python-espncricinfo"
+version = "1.0.0"
+description = "ESPNCricInfo API client"
+requires-python = ">=3.8"
+dependencies = ["requests", "bs4", "dateparser", "lxml", "playwright>=1.48.0"]
+
+[project.optional-dependencies]
+dev = []
+
+[dependency-groups]
+dev = [
+    "playwright>=1.48.0",
+]
