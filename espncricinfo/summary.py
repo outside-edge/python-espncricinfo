@@ -1,4 +1,5 @@
 from espncricinfo.match import Match
+from espncricinfo.exceptions import MatchNotFoundError
 
 
 class Summary:
