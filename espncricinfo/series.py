@@ -1,6 +1,9 @@
 import requests
 
+from espncricinfo._core import collection_refs, get_json
 from espncricinfo.exceptions import NoSeriesError
+from espncricinfo.match_ref import MatchRef
+from espncricinfo.seasons import Season
 
 
 class Series(object):
@@ -23,6 +26,10 @@ class Series(object):
         self.json = self.get_json(self.json_url)
         self.seasons = self._get_seasons()
         self.years = self._get_years_from_seasons()
+        self._season_objects = None
+        self._current_season = None
+        self._match_refs = None
+        self._current_matches = None
         if self.json:
             self.name = self.json["name"]
             self.short_name = self.json["shortName"]
@@ -70,3 +77,56 @@ class Series(object):
         for event in self.events_json:
             events.append(self.get_json(event["$ref"]))
         return events
+
+    @property
+    def season_objects(self):
+        if self._season_objects is None:
+            self._season_objects = [Season.from_reference(url) for url in self.seasons]
+        return self._season_objects
+
+    @property
+    def current_season(self):
+        if self._current_season is None:
+            reference = (self.json.get("season") or {}).get("$ref")
+            self._current_season = (
+                Season.from_reference(reference) if reference else None
+            )
+        return self._current_season
+
+    @property
+    def matches(self):
+        if self._match_refs is None:
+            if self.seasons:
+                self._match_refs = list(
+                    dict.fromkeys(
+                        ref
+                        for season in self.season_objects
+                        for ref in season.match_refs
+                    )
+                )
+            else:
+                reference = (self.json.get("events") or {}).get("$ref")
+                urls = collection_refs(reference or self.events_url, NoSeriesError)
+                self._match_refs = [MatchRef.from_core_event_url(url) for url in urls]
+        return self._match_refs
+
+    @property
+    def current_matches(self):
+        if self._current_matches is None:
+            active = []
+            for ref in self.matches:
+                url = (
+                    "http://core.espnuk.org/v2/sports/cricket/leagues/"
+                    f"{ref.series_id}/events/{ref.match_id}"
+                )
+                event = get_json(url, NoSeriesError)
+                for competition in event.get("competitions", []):
+                    status_url = (competition.get("status") or {}).get("$ref")
+                    if status_url and (
+                        get_json(status_url, NoSeriesError).get("type", {}).get("state")
+                        == "in"
+                    ):
+                        active.append(ref)
+                        break
+            self._current_matches = active
+        return self._current_matches
