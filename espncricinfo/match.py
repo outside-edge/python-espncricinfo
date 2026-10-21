@@ -1,7 +1,9 @@
-import json
 import asyncio
+import json
 from datetime import date as _date
+
 from playwright.async_api import async_playwright
+
 from espncricinfo.exceptions import MatchNotFoundError, NoScorecardError
 from espncricinfo.match_ref import MatchRef
 
@@ -33,7 +35,12 @@ async def _async_playwright_fetch(url):
 
     # Extract __NEXT_DATA__ from the HTML
     import re
-    m = re.search(r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>', content, re.DOTALL)
+
+    m = re.search(
+        r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>',
+        content,
+        re.DOTALL,
+    )
     if not m:
         raise NoScorecardError("Could not find __NEXT_DATA__ in page")
     return json.loads(m.group(1))
@@ -103,14 +110,20 @@ def _normalise(next_data, match_id, series_id):
 
     # ---- toss ----
     toss_winner_internal = match.get("tossWinnerTeamId")
-    toss_winner_team_id = team_id_to_objectid.get(toss_winner_internal, "") if toss_winner_internal else ""
+    toss_winner_team_id = (
+        team_id_to_objectid.get(toss_winner_internal, "")
+        if toss_winner_internal
+        else ""
+    )
     toss_choice = match.get("tossWinnerChoice")
     toss_decision = "1" if toss_choice == 1 else "2"
     toss_decision_name = "bat" if toss_choice == 1 else "bowl"
 
     # ---- winner ----
     winner_internal = match.get("winnerTeamId")
-    winner_team_id = team_id_to_objectid.get(winner_internal, "") if winner_internal else ""
+    winner_team_id = (
+        team_id_to_objectid.get(winner_internal, "") if winner_internal else ""
+    )
 
     # ---- batting first ----
     batting_first_team_id = ""
@@ -126,24 +139,26 @@ def _normalise(next_data, match_id, series_id):
             run_rate = round(runs / overs, 2) if overs > 0 else 0.0
         except (ZeroDivisionError, TypeError):
             run_rate = 0.0
-        innings_normalised.append({
-            "batting_team_id": str(inn["team"]["objectId"]),
-            "runs": runs,
-            "wickets": inn.get("wickets"),
-            "overs": str(overs),
-            "run_rate": str(run_rate),
-            "event_name": inn.get("event"),
-            "inning_number": inn.get("inningNumber"),
-            "inningBatsmen": inn.get("inningBatsmen", []),
-            "inningBowlers": inn.get("inningBowlers", []),
-            "inningFallOfWickets": inn.get("inningFallOfWickets", []),
-            "extras": inn.get("extras"),
-            "byes": inn.get("byes"),
-            "legbyes": inn.get("legbyes"),
-            "wides": inn.get("wides"),
-            "noballs": inn.get("noballs"),
-            "target": inn.get("target"),
-        })
+        innings_normalised.append(
+            {
+                "batting_team_id": str(inn["team"]["objectId"]),
+                "runs": runs,
+                "wickets": inn.get("wickets"),
+                "overs": str(overs),
+                "run_rate": str(run_rate),
+                "event_name": inn.get("event"),
+                "inning_number": inn.get("inningNumber"),
+                "inningBatsmen": inn.get("inningBatsmen", []),
+                "inningBowlers": inn.get("inningBowlers", []),
+                "inningFallOfWickets": inn.get("inningFallOfWickets", []),
+                "extras": inn.get("extras"),
+                "byes": inn.get("byes"),
+                "legbyes": inn.get("legbyes"),
+                "wides": inn.get("wides"),
+                "noballs": inn.get("noballs"),
+                "target": inn.get("target"),
+            }
+        )
 
     # ---- ground location ----
     ground = match.get("ground", {})
@@ -173,9 +188,7 @@ def _normalise(next_data, match_id, series_id):
 
     # ---- description ----
     if teams_raw and len(teams_raw) >= 2:
-        description = (
-            f"{teams_raw[0]['team']['name']} v {teams_raw[1]['team']['name']}"
-        )
+        description = f"{teams_raw[0]['team']['name']} v {teams_raw[1]['team']['name']}"
     else:
         description = match.get("title", "")
 
@@ -248,7 +261,6 @@ def _normalise(next_data, match_id, series_id):
 
 
 class Match(object):
-
     def __init__(self, match_id, series_id):
         self.match_id = int(match_id)
         self.series_id = int(series_id)
@@ -313,7 +325,7 @@ class Match(object):
             self.team_2_run_rate = self._team_2_run_rate()
             self.team_2_overs_batted = self._team_2_overs_batted()
             self.team_2_batting_result = self._team_2_batting_result()
-            if not self.status == 'dormant':
+            if not self.status == "dormant":
                 self.home_team = self._home_team()
                 self.batting_first = self._batting_first()
                 self.match_winner = self._match_winner()
@@ -382,8 +394,7 @@ class Match(object):
 
     def _details_url(self, page=1, number=1000):
         return (
-            self.event_url
-            + f"/competitions/{self.match_id}/details"
+            self.event_url + f"/competitions/{self.match_id}/details"
             f"?page_size={number}&page={page}"
         )
 
@@ -529,7 +540,8 @@ class Match(object):
     def _team_1_innings(self):
         try:
             return [
-                inn for inn in self.json["innings"]
+                inn
+                for inn in self.json["innings"]
                 if inn["batting_team_id"] == self._team_1_id()
             ][0]
         except Exception:
@@ -568,7 +580,8 @@ class Match(object):
     def _team_2_innings(self):
         try:
             return [
-                inn for inn in self.json["innings"]
+                inn
+                for inn in self.json["innings"]
                 if inn["batting_team_id"] == self._team_2_id()
             ][0]
         except Exception:
@@ -701,18 +714,20 @@ class Match(object):
         else:
             dismissal = "not out"
         return {
-            "name":        player.get("name"),
-            "full_name":   player.get("longName"),
-            "player_id":   player.get("objectId"),
-            "runs":        raw.get("runs") if batted else None,
-            "balls":       raw.get("balls") if batted else None,
-            "minutes":     raw.get("minutes") if batted else None,
-            "fours":       raw.get("fours") if batted else None,
-            "sixes":       raw.get("sixes") if batted else None,
-            "strike_rate": float(sr) if (batted and (sr := raw.get("strikerate")) is not None) else None,
-            "is_out":      is_out,
-            "dismissal":   dismissal,
-            "batted":      batted,
+            "name": player.get("name"),
+            "full_name": player.get("longName"),
+            "player_id": player.get("objectId"),
+            "runs": raw.get("runs") if batted else None,
+            "balls": raw.get("balls") if batted else None,
+            "minutes": raw.get("minutes") if batted else None,
+            "fours": raw.get("fours") if batted else None,
+            "sixes": raw.get("sixes") if batted else None,
+            "strike_rate": float(sr)
+            if (batted and (sr := raw.get("strikerate")) is not None)
+            else None,
+            "is_out": is_out,
+            "dismissal": dismissal,
+            "batted": batted,
         }
 
     @property
@@ -746,17 +761,17 @@ class Match(object):
         economy = raw.get("economy")
         overs = raw.get("overs")
         return {
-            "name":      player.get("name"),
+            "name": player.get("name"),
             "full_name": player.get("longName"),
             "player_id": player.get("objectId"),
-            "overs":     float(overs) if overs is not None else None,
-            "maidens":   raw.get("maidens"),
-            "runs":      raw.get("conceded"),
-            "wickets":   raw.get("wickets"),
-            "economy":   float(economy) if economy is not None else None,
-            "wides":     raw.get("wides"),
-            "no_balls":  raw.get("noballs"),
-            "dots":      raw.get("dots"),
+            "overs": float(overs) if overs is not None else None,
+            "maidens": raw.get("maidens"),
+            "runs": raw.get("conceded"),
+            "wickets": raw.get("wickets"),
+            "economy": float(economy) if economy is not None else None,
+            "wides": raw.get("wides"),
+            "no_balls": raw.get("noballs"),
+            "dots": raw.get("dots"),
         }
 
     @property
@@ -800,14 +815,15 @@ class Match(object):
             url = f"https://www.espncricinfo.com/live-cricket-match-results?date={date}"
         else:
             today = _date.today().isoformat()
-            url = f"https://www.espncricinfo.com/live-cricket-match-results?date={today}"
+            url = (
+                f"https://www.espncricinfo.com/live-cricket-match-results?date={today}"
+            )
 
         next_data = _playwright_fetch(url)
         try:
-            matches = (
-                next_data["props"]["appPageProps"]["data"]["data"]
-                ["content"]["matches"]
-            )
+            matches = next_data["props"]["appPageProps"]["data"]["data"]["content"][
+                "matches"
+            ]
         except (KeyError, TypeError):
             return []
 

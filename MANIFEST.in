@@ -1,0 +1,2 @@
+include pytest.ini
+recursive-include tests *.py *.json *.html

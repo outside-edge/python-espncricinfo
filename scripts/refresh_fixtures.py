@@ -13,10 +13,10 @@ Requirements:
     uv add --dev playwright
     uv run playwright install webkit
 """
+
 import asyncio
 import json
 import re
-import sys
 from pathlib import Path
 
 FIXTURES = Path(__file__).parent.parent / "tests" / "fixtures"
@@ -42,6 +42,7 @@ def save(name, data):
 async def _playwright_fetch_next_data(url):
     """Fetch a page via Playwright WebKit and extract __NEXT_DATA__."""
     from playwright.async_api import async_playwright
+
     async with async_playwright() as pw:
         browser = await pw.webkit.launch(headless=True)
         context = await browser.new_context(
@@ -59,14 +60,20 @@ async def _playwright_fetch_next_data(url):
         content = await page.content()
         await browser.close()
 
-    m = re.search(r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>', content, re.DOTALL)
+    m = re.search(
+        r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>',
+        content,
+        re.DOTALL,
+    )
     if not m:
         raise RuntimeError(f"No __NEXT_DATA__ found at {url}")
     return json.loads(m.group(1))
 
 
 def fetch_match():
-    url = f"https://www.espncricinfo.com/series/x-{SERIES_ID}/x-{MATCH_ID}/full-scorecard"
+    url = (
+        f"https://www.espncricinfo.com/series/x-{SERIES_ID}/x-{MATCH_ID}/full-scorecard"
+    )
     print(f"  Fetching: {url}")
     next_data = asyncio.run(_playwright_fetch_next_data(url))
 
@@ -94,6 +101,7 @@ def fetch_match():
 
 def fetch_player():
     import requests
+
     headers = {"user-agent": "Mozilla/5.0"}
 
     # core.espnuk.org still works

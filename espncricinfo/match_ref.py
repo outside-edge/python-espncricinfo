@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -63,4 +64,5 @@ class MatchRef:
         Triggers a Playwright fetch — use only when you need full match data.
         """
         from espncricinfo.match import Match
+
         return Match(self.match_id, self.series_id)

@@ -1,10 +1,10 @@
 import unittest
 from unittest.mock import patch
+
 from espncricinfo.match_ref import MatchRef
 
 
 class TestMatchRefFields(unittest.TestCase):
-
     def test_fields_stored_as_int(self):
         ref = MatchRef(series_id=1478874, match_id=1478914)
         self.assertEqual(ref.series_id, 1478874)
@@ -43,7 +43,6 @@ class TestMatchRefFields(unittest.TestCase):
 
 
 class TestMatchRefSerialization(unittest.TestCase):
-
     def setUp(self):
         self.ref = MatchRef(series_id=1478874, match_id=1478914)
 
@@ -90,8 +89,8 @@ class TestMatchRefSerialization(unittest.TestCase):
 
     def test_to_csv_row_order_is_series_then_match(self):
         row = self.ref.to_csv_row()
-        self.assertEqual(row[0], "1478874")   # series_id first
-        self.assertEqual(row[1], "1478914")   # match_id second
+        self.assertEqual(row[0], "1478874")  # series_id first
+        self.assertEqual(row[1], "1478914")  # match_id second
 
     # --- from_csv_row ---
 
@@ -108,13 +107,15 @@ class TestMatchRefSerialization(unittest.TestCase):
 
 
 class TestMatchRefToMatch(unittest.TestCase):
-
     def test_to_match_returns_match_instance(self):
         import json
         from pathlib import Path
+
         from espncricinfo.match import Match
 
-        fixture_path = Path(__file__).parent / "fixtures" / "match_1478914_next_data.json"
+        fixture_path = (
+            Path(__file__).parent / "fixtures" / "match_1478914_next_data.json"
+        )
         next_data = json.load(open(fixture_path))
 
         ref = MatchRef(series_id=1478874, match_id=1478914)
@@ -125,9 +126,10 @@ class TestMatchRefToMatch(unittest.TestCase):
     def test_to_match_passes_correct_ids(self):
         import json
         from pathlib import Path
-        from espncricinfo.match import Match
 
-        fixture_path = Path(__file__).parent / "fixtures" / "match_1478914_next_data.json"
+        fixture_path = (
+            Path(__file__).parent / "fixtures" / "match_1478914_next_data.json"
+        )
         next_data = json.load(open(fixture_path))
 
         ref = MatchRef(series_id=1478874, match_id=1478914)
@@ -137,14 +139,16 @@ class TestMatchRefToMatch(unittest.TestCase):
 
 
 class TestGetRecentMatchesReturnsMatchRef(unittest.TestCase):
-
     def test_get_recent_matches_returns_list(self):
         """get_recent_matches should return a list (may be empty if fixture has no results data)."""
         import json
         from pathlib import Path
+
         from espncricinfo.match import Match
 
-        fixture_path = Path(__file__).parent / "fixtures" / "match_1478914_next_data.json"
+        fixture_path = (
+            Path(__file__).parent / "fixtures" / "match_1478914_next_data.json"
+        )
         next_data = json.load(open(fixture_path))
 
         with patch("espncricinfo.match._playwright_fetch", return_value=next_data):
@@ -156,9 +160,12 @@ class TestGetRecentMatchesReturnsMatchRef(unittest.TestCase):
         """Any items returned must be MatchRef objects, not tuples."""
         import json
         from pathlib import Path
+
         from espncricinfo.match import Match
 
-        fixture_path = Path(__file__).parent / "fixtures" / "match_1478914_next_data.json"
+        fixture_path = (
+            Path(__file__).parent / "fixtures" / "match_1478914_next_data.json"
+        )
         next_data = json.load(open(fixture_path))
 
         with patch("espncricinfo.match._playwright_fetch", return_value=next_data):
