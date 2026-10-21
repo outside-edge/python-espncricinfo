@@ -16,13 +16,9 @@ class Player(object):
         self.json_url = "http://core.espnuk.org/v2/sports/cricket/athletes/{0}".format(
             str(player_id)
         )
-        self.new_json_url = "https://hs-consumer-api.espncricinfo.com/v1/pages/player/home?playerId={0}".format(
-            str(player_id)
-        )
         self.headers = {"user-agent": "Mozilla/5.0"}
-        self.parsed_html = self.get_html()
         self.json = self.get_json()
-        self.new_json = self.get_new_json()
+        self._major_teams_cache = None
         self.cricinfo_id = str(player_id)
         self.__unicode__ = self._full_name()
         self.name = self._name()
@@ -33,7 +29,6 @@ class Player(object):
         self.playing_role = self._playing_role()
         self.batting_style = self._batting_style()
         self.bowling_style = self._bowling_style()
-        self.major_teams = self._major_teams()
 
     def get_html(self):
         r = requests.get(self.url, headers=self.headers)
@@ -46,15 +41,8 @@ class Player(object):
         r = requests.get(self.json_url, headers=self.headers)
         if r.status_code == 404:
             raise PlayerNotFoundError
-        else:
-            return r.json()
-
-    def get_new_json(self):
-        r = requests.get(self.new_json_url, headers=self.headers)
-        if r.status_code == 404:
-            raise PlayerNotFoundError
-        else:
-            return r.json()
+        r.raise_for_status()
+        return r.json()
 
     def _name(self):
         return self.json["name"]
@@ -77,8 +65,21 @@ class Player(object):
     def _current_age(self):
         return self.json["age"]
 
-    def _major_teams(self):
-        return [x["team"]["longName"] for x in self.new_json["content"]["teams"]]
+    @property
+    def major_teams(self):
+        if self._major_teams_cache is None:
+            teams = []
+            for reference in self.json.get("majorTeams", []):
+                response = requests.get(reference["$ref"], headers=self.headers)
+                response.raise_for_status()
+                team = response.json()
+                name = (
+                    team.get("longName") or team.get("displayName") or team.get("name")
+                )
+                if name:
+                    teams.append(name)
+            self._major_teams_cache = teams
+        return self._major_teams_cache
 
     def _playing_role(self):
         return self.json["position"]

@@ -5,6 +5,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
+from requests import HTTPError, Response
 
 from espncricinfo.exceptions import PlayerNotFoundError
 from espncricinfo.player import Player
@@ -31,18 +32,18 @@ def _mock_response(json_data=None, text=None, status_code=200):
 
 def _make_player():
     json_data = _load("player_253802.json")
-    new_json = _load("player_253802_new.json")
 
     def side_effect(url, headers=None):
-        if "hs-consumer-api" in url:
-            return _mock_response(json_data=new_json)
-        elif "espnuk.org" in url:
+        if "/athletes/" in url:
             return _mock_response(json_data=json_data)
-        else:
-            return _mock_response(text="<html><body></body></html>")
+        if "/teams/" in url:
+            return _mock_response(json_data={"name": f"Team {url.rsplit('/', 1)[-1]}"})
+        raise AssertionError(f"Unexpected request: {url}")
 
     with patch("espncricinfo.player.requests.get", side_effect=side_effect):
-        return Player(253802)
+        player = Player(253802)
+        _ = player.major_teams
+        return player
 
 
 class TestPlayerAttributes(unittest.TestCase):
@@ -91,6 +92,24 @@ class TestPlayerAttributes(unittest.TestCase):
         for team in self.player.major_teams:
             self.assertIsInstance(team, str)
 
+    def test_major_teams_resolve_core_references_once(self):
+        player_data = _load("player_253802.json")
+        player_data["majorTeams"] = [
+            {"$ref": "http://core.espnuk.org/v2/sports/cricket/teams/6"},
+            {"$ref": "http://core.espnuk.org/v2/sports/cricket/teams/1668"},
+        ]
+        responses = [
+            _mock_response(json_data=player_data),
+            _mock_response(json_data={"displayName": "India"}),
+            _mock_response(json_data={"name": "Delhi"}),
+        ]
+        with patch("espncricinfo.player.requests.get", side_effect=responses) as get:
+            player = Player(253802)
+            self.assertEqual(get.call_count, 1)
+            self.assertEqual(player.major_teams, ["India", "Delhi"])
+            self.assertEqual(player.major_teams, ["India", "Delhi"])
+            self.assertEqual(get.call_count, 3)
+
 
 class TestPlayerErrors(unittest.TestCase):
     def test_404_raises_player_not_found(self):
@@ -98,6 +117,14 @@ class TestPlayerErrors(unittest.TestCase):
         with patch("espncricinfo.player.requests.get", return_value=mock_404):
             with self.assertRaises(PlayerNotFoundError):
                 Player(999999)
+
+    def test_non_404_http_error_is_not_decoded_as_json(self):
+        denied = Response()
+        denied.status_code = 403
+        denied._content = b"<html>Access Denied</html>"
+        with patch("espncricinfo.player.requests.get", return_value=denied):
+            with self.assertRaises(HTTPError):
+                Player(253802)
 
 
 class TestPlayerIntegration:
