@@ -1,10 +1,10 @@
 # python-espncricinfo
 
-A Python 3 client for ESPNCricinfo's match, summary and player information.
+A Python 3.10+ client for ESPNCricinfo's match, summary and player information.
 
 ### Description
 
-A Python 3 client for ESPNCricinfo match, series and player data. The library uses Playwright (WebKit) to fetch match pages and extract embedded JSON, bypassing Akamai CDN restrictions on the legacy engine API endpoints. Both a `match_id` and `series_id` are required to instantiate a `Match` — both can be obtained from `Match.get_recent_matches()`. See the Usage section for instructions, and see `match.py` for individual functions.
+A Python 3.10+ client for ESPNCricinfo match, series and player data. The library uses Playwright (WebKit) to fetch match pages and extract embedded JSON, bypassing Akamai CDN restrictions on the legacy engine API endpoints. Both a `match_id` and `series_id` are required to instantiate a `Match` — both can be obtained from `Match.get_recent_matches()`. See the Usage section for instructions, and see `match.py` for individual functions.
 
 Disclaimer: This library is not intended for commercial use and neither it nor its creator has any affiliation with ESPNCricInfo. The [LICENSE](LICENSE.txt) for this library applies only to the code, not to the data.
 

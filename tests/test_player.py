@@ -46,7 +46,6 @@ def _make_player():
 
 
 class TestPlayerAttributes(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         cls.player = _make_player()
@@ -94,7 +93,6 @@ class TestPlayerAttributes(unittest.TestCase):
 
 
 class TestPlayerErrors(unittest.TestCase):
-
     def test_404_raises_player_not_found(self):
         mock_404 = _mock_response(status_code=404)
         with patch("espncricinfo.player.requests.get", return_value=mock_404):
@@ -103,7 +101,6 @@ class TestPlayerErrors(unittest.TestCase):
 
 
 class TestPlayerIntegration:
-
     @pytest.mark.integration
     def test_live_name(self):
         player = Player(253802)
@@ -134,7 +131,6 @@ class TestPlayerIntegration:
 
 
 class TestPlayerDeprecatedMethods(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         cls.player = _make_player()

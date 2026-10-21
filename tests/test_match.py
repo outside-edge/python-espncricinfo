@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pytest
 
 from espncricinfo.exceptions import MatchNotFoundError, NoScorecardError
-from espncricinfo.match import Match, _normalise
+from espncricinfo.match import Match
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures"
 
@@ -18,7 +18,6 @@ def _make_match():
 
 
 class TestMatchAttributes(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         cls.match = _make_match()
@@ -69,8 +68,7 @@ class TestMatchAttributes(unittest.TestCase):
 
     def test_town_name_is_string_or_none(self):
         self.assertTrue(
-            self.match.town_name is None
-            or isinstance(self.match.town_name, str)
+            self.match.town_name is None or isinstance(self.match.town_name, str)
         )
 
     # ---- match flags ----
@@ -186,8 +184,7 @@ class TestMatchAttributes(unittest.TestCase):
 
     def test_rosters_is_dict_or_none(self):
         self.assertTrue(
-            self.match.rosters is None
-            or isinstance(self.match.rosters, dict)
+            self.match.rosters is None or isinstance(self.match.rosters, dict)
         )
 
     def test_all_innings_is_list(self):
@@ -205,7 +202,6 @@ class TestMatchAttributes(unittest.TestCase):
 
 
 class TestMatchScorecardMethods(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         cls.match = _make_match()
@@ -249,7 +245,6 @@ class TestMatchScorecardMethods(unittest.TestCase):
 
 
 class TestMatchExceptions(unittest.TestCase):
-
     def test_match_not_found_error_raised_on_404(self):
         with patch(
             "espncricinfo.match._playwright_fetch",
@@ -269,7 +264,6 @@ class TestMatchExceptions(unittest.TestCase):
 
 
 class TestMatchIntegration:
-
     @pytest.mark.integration
     def test_live_description_is_string(self):
         m = Match(1478914, 1478874)
@@ -300,7 +294,6 @@ class TestMatchIntegration:
 
 
 class TestMatchScorecardProperties(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         cls.match = _make_match()
@@ -319,9 +312,20 @@ class TestMatchScorecardProperties(unittest.TestCase):
 
     def test_batting_scorecard_entry_has_required_keys(self):
         entry = self.match.batting_scorecard[0][0]
-        for key in ("name", "full_name", "player_id", "runs", "balls",
-                    "minutes", "fours", "sixes", "strike_rate",
-                    "is_out", "dismissal", "batted"):
+        for key in (
+            "name",
+            "full_name",
+            "player_id",
+            "runs",
+            "balls",
+            "minutes",
+            "fours",
+            "sixes",
+            "strike_rate",
+            "is_out",
+            "dismissal",
+            "batted",
+        ):
             self.assertIn(key, entry)
 
     def test_batting_scorecard_first_batsman_values(self):
@@ -342,13 +346,16 @@ class TestMatchScorecardProperties(unittest.TestCase):
 
     def test_batting_scorecard_empty_innings_returns_empty_list(self):
         from unittest.mock import patch
+
         # Patch batsmen to return None for innings 2
         original_batsmen = self.match.batsmen
+
         def patched_batsmen(i):
             if i == 2:
                 return None
             return original_batsmen(i)
-        with patch.object(self.match, 'batsmen', side_effect=patched_batsmen):
+
+        with patch.object(self.match, "batsmen", side_effect=patched_batsmen):
             sc = self.match.batting_scorecard
         self.assertEqual(sc[1], [])
 
@@ -366,8 +373,19 @@ class TestMatchScorecardProperties(unittest.TestCase):
 
     def test_bowling_scorecard_entry_has_required_keys(self):
         entry = self.match.bowling_scorecard[0][0]
-        for key in ("name", "full_name", "player_id", "overs", "maidens",
-                    "runs", "wickets", "economy", "wides", "no_balls", "dots"):
+        for key in (
+            "name",
+            "full_name",
+            "player_id",
+            "overs",
+            "maidens",
+            "runs",
+            "wickets",
+            "economy",
+            "wides",
+            "no_balls",
+            "dots",
+        ):
             self.assertIn(key, entry)
 
     def test_bowling_scorecard_first_bowler_values(self):
@@ -379,16 +397,16 @@ class TestMatchScorecardProperties(unittest.TestCase):
 
     def test_bowling_scorecard_economy_is_float_or_none(self):
         entry = self.match.bowling_scorecard[0][0]
-        self.assertTrue(
-            entry["economy"] is None or isinstance(entry["economy"], float)
-        )
+        self.assertTrue(entry["economy"] is None or isinstance(entry["economy"], float))
 
     def test_bowling_scorecard_empty_innings_returns_empty_list(self):
         original_bowlers = self.match.bowlers
+
         def patched_bowlers(i):
             if i == 2:
                 return None
             return original_bowlers(i)
-        with patch.object(self.match, 'bowlers', side_effect=patched_bowlers):
+
+        with patch.object(self.match, "bowlers", side_effect=patched_bowlers):
             sc = self.match.bowling_scorecard
         self.assertEqual(sc[1], [])
