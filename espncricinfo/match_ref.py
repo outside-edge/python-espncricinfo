@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from espncricinfo._core import reference_ids
+
 if TYPE_CHECKING:
     from espncricinfo.match import Match
 
@@ -47,6 +49,12 @@ class MatchRef:
     def from_dict(cls, d: dict) -> "MatchRef":
         """Construct from a mapping with ``series_id`` and ``match_id`` keys."""
         return cls(series_id=d["series_id"], match_id=d["match_id"])
+
+    @classmethod
+    def from_core_event_url(cls, url: str) -> "MatchRef":
+        """Construct from a core ESPN event reference."""
+        series_id, match_id = reference_ids(url, "events")
+        return cls(series_id=series_id, match_id=match_id)
 
     def to_csv_row(self) -> list:
         """Return ``[str(series_id), str(match_id)]`` for use with ``csv.writer``."""

@@ -86,6 +86,21 @@ For series (or league) details, pass in the series ID (found in a match URL, for
 'India tour of Ireland and England 2018'
 ```
 
+Navigate from a series to its seasons, teams, and matches:
+
+```python
+from espncricinfo.series import Series
+
+series = Series(1478874)
+season = series.current_season
+for team in season.teams:
+    print(team.name, team.match)
+for ref in series.matches:
+    print(ref.series_id, ref.match_id)
+```
+
+`series.season_objects` lists all seasons. `season.match_refs` lists that season's matches, while `series.current_matches` contains only matches whose ESPN status is in progress. These match lists contain lightweight `MatchRef` objects; loading a full `Match` launches Playwright. `team.players` loads player records on demand.
+
 ### Tests
 
 **Unit tests** (no network required — uses recorded fixtures):

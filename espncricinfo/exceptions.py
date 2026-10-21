@@ -31,3 +31,11 @@ class NoSeriesError(TypeError):
     """
 
     pass
+
+
+class NoSeasonError(TypeError):
+    """Exception raised if a season does not exist."""
+
+
+class NoTeamError(TypeError):
+    """Exception raised if a team does not exist in a series."""
