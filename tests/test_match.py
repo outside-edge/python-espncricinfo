@@ -468,3 +468,44 @@ def test_live_match_from_id_alone():
     match = Match(729303)
     assert match.series_id == 695871
     assert match.batting_scorecard[0]
+
+
+def test_innings_fours_and_sixes_match_espn_totals():
+    match = _make_match()
+    first = match.innings[0]
+    assert (first["fours"], first["sixes"]) == (15, 4)
+    for inn in match.innings:
+        batters = inn["inningBatsmen"]
+        assert inn["fours"] == sum(b["fours"] or 0 for b in batters)
+        assert inn["sixes"] == sum(b["sixes"] or 0 for b in batters)
+
+
+def test_boundary_count_falls_back_to_batters_then_none():
+    from espncricinfo.match import _boundary_count
+
+    assert _boundary_count({"fours": 9, "inningBatsmen": []}, "fours") == 9
+    batted = {"battedType": "yes"}
+    batters = [{**batted, "fours": 2}, {**batted, "fours": 5}]
+    did_not_bat = {"battedType": "DNB", "fours": None}
+    assert _boundary_count({"inningBatsmen": [*batters, did_not_bat]}, "fours") == 7
+    assert (
+        _boundary_count({"inningBatsmen": [{**batted, "fours": None}]}, "fours") is None
+    )
+    assert _boundary_count({"inningBatsmen": []}, "fours") is None
+
+
+def test_over_by_over_adds_up_to_innings_totals():
+    match = _make_match()
+    assert [len(overs) for overs in match.over_by_over] == [20, 20]
+    for overs, inn in zip(match.over_by_over, match.innings, strict=True):
+        assert sum(o["runs"] for o in overs) == inn["runs"]
+        assert sum(o["wickets"] for o in overs) == inn["wickets"]
+        assert overs[-1]["total_runs"] == inn["runs"]
+        assert [o["over"] for o in overs] == list(range(1, 21))
+
+
+@pytest.mark.integration
+def test_live_old_test_has_no_over_data_and_no_invented_boundaries():
+    match = Match(63963, 61791)
+    assert all(overs == [] for overs in match.over_by_over)
+    assert all(inn["fours"] is None or inn["fours"] >= 0 for inn in match.innings)

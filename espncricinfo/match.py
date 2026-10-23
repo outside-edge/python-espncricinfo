@@ -66,6 +66,24 @@ def _playwright_fetch(url: str) -> dict[str, Any]:
         return pool.submit(lambda: asyncio.run(_async_playwright_fetch(url))).result()
 
 
+def _boundary_count(inn: dict[str, Any], key: str) -> int | None:
+    """Innings fours or sixes: ESPN's total, else the batters' sum, else None.
+
+    Where ESPN gives both, the total equals the batters' sum; older matches
+    often carry only the batters' figures, and the oldest carry neither.
+    """
+    if inn.get(key) is not None:
+        return inn[key]
+    counts = [
+        bat.get(key)
+        for bat in inn.get("inningBatsmen") or []
+        if bat.get("battedType") == "yes"
+    ]
+    if not counts or any(count is None for count in counts):
+        return None
+    return sum(counts)
+
+
 def _as_float(record: dict[str, Any] | None, key: str) -> float | None:
     """Return ``record[key]`` as a float, or None if absent or not numeric."""
     if record is None:
@@ -176,6 +194,9 @@ def _normalize(next_data, match_id, series_id):
                 "inningBatsmen": inn.get("inningBatsmen", []),
                 "inningBowlers": inn.get("inningBowlers", []),
                 "inningFallOfWickets": inn.get("inningFallOfWickets", []),
+                "inningOvers": inn.get("inningOvers") or [],
+                "fours": _boundary_count(inn, "fours"),
+                "sixes": _boundary_count(inn, "sixes"),
                 "extras": inn.get("extras"),
                 "byes": inn.get("byes"),
                 "legbyes": inn.get("legbyes"),
@@ -314,6 +335,16 @@ class BattingEntry(TypedDict):
     batted: bool
 
 
+class OverEntry(TypedDict):
+    """One over of :attr:`Match.over_by_over`."""
+
+    over: int
+    runs: int
+    wickets: int
+    total_runs: int
+    total_wickets: int
+
+
 class BowlingEntry(TypedDict):
     """One row of :attr:`Match.bowling_scorecard`."""
 
@@ -373,7 +404,8 @@ class Match:
     scheduled_overs: int | None
     #: Innings numbers as strings, ``['1', '2']``.
     innings_list: list[str]
-    #: One dict per innings: team id, runs, wickets, overs and ESPN's raw lists.
+    #: One dict per innings: team id, runs, wickets, overs, ``fours``, ``sixes``
+    #: (None where ESPN has no figures) and ESPN's raw lists.
     innings: list[dict[str, Any]]
     #: ESPN's raw innings records, including partnerships and commentary.
     all_innings: list[dict[str, Any]]
@@ -670,6 +702,31 @@ class Match:
             else:
                 result.append([])
         return result
+
+    @property
+    def over_by_over(self) -> list[list[OverEntry]]:
+        """Runs and wickets per over: one list per innings, one row per over.
+
+        Empty for an innings ESPN has no over data for, as with early Tests.
+
+        Example::
+
+            for over in m.over_by_over[0]:
+                print(over["over"], over["runs"], over["total_runs"])
+        """
+        return [
+            [
+                OverEntry(
+                    over=o["overNumber"],
+                    runs=o["overRuns"],
+                    wickets=o["overWickets"],
+                    total_runs=o["totalRuns"],
+                    total_wickets=o["totalWickets"],
+                )
+                for o in inn.get("inningOvers") or []
+            ]
+            for inn in self.innings
+        ]
 
     # ------------------------------------------------------------------
     # Static helpers

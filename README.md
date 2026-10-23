@@ -70,7 +70,7 @@ A match needs only its match ID, the number in a match page URL. Passing the ser
 ('D Brown', 0)
 ```
 
-`batting_scorecard` and `bowling_scorecard` hold one list per innings and one dict per player.
+`batting_scorecard` and `bowling_scorecard` hold one list per innings and one dict per player. `over_by_over` gives runs and wickets for every over, and each `m.innings` entry has `fours` and `sixes`.
 
 ## Players
 

@@ -12,6 +12,10 @@
 
 - `Match(match_id)` works without a series ID: the match page is found from
   the match ID and `series_id` is read from it (#50).
+- Each `Match.innings` entry has `fours` and `sixes`: ESPN's innings total,
+  else the sum over batters who batted, else None (#54).
+- `Match.over_by_over`: runs and wickets per over for each innings, typed as
+  `OverEntry` rows; empty where ESPN has no over data (#42).
 - `Series.season(key)` finds a season by year or by ESPNcricinfo's two-year
   label (`"2024/25"`), and `Season.label` gives that label. Multi-year seasons
   live under their own series ID, now reachable as `season.series_id` (#76).
