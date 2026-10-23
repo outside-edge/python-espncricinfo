@@ -50,7 +50,7 @@ MatchRef(series_id=1523975, match_id=1523981)
 >>> series_id, match_id = refs[0]  # MatchRefs unpack like tuples
 ```
 
-`Summary(date=...)` wraps the same call; its result is in `.matches`.
+For one day only, `Match.get_matches_on("2026-10-20")` keeps the matches played that day, multi-day matches included on each of their days. `Summary(date=...)` wraps the same call; its result is in `.matches`.
 
 ## A single match
 

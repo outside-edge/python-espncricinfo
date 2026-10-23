@@ -10,6 +10,8 @@
 
 ### Added
 
+- `Match.get_matches_on(date)`: the matches being played on one day, Tests
+  included on each of their days (#28).
 - `Match(match_id)` works without a series ID: the match page is found from
   the match ID and `series_id` is read from it (#50).
 - Each `Match.innings` entry has `fours` and `sixes`: ESPN's innings total,

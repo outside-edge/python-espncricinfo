@@ -736,44 +736,66 @@ class Match:
     def get_recent_matches(date: _date | str | None = None) -> list[MatchRef]:
         """Return MatchRefs for the matches on ESPNcricinfo's results page.
 
-        Fetches https://www.espncricinfo.com/live-cricket-match-results
-        (with ?date=DD-MM-YYYY) and extracts match data from
-        __NEXT_DATA__ at props.appPageProps.data.data.content.matches.
-        ESPN returns roughly the two weeks of matches ending on that date.
+        ESPN returns roughly the two weeks of matches ending on ``date``. Use
+        :meth:`get_matches_on` for the matches played on one day.
 
-        ``date`` may be a ``datetime.date`` or a string in YYYY-MM-DD or
-        DD-MM-YYYY form; it defaults to today. ESPN answers the YYYY-MM-DD
-        form with an error page, so it is converted before the request.
+        Args:
+            date: A ``datetime.date`` or a string in YYYY-MM-DD or DD-MM-YYYY
+                form; defaults to today.
+
+        Returns:
+            The listed matches, most recent first.
         """
-        if date is None:
-            day = _datetime.now().astimezone().date()
-        elif isinstance(date, _date):
-            day = date
-        else:
-            try:
-                day = _date.fromisoformat(date)
-            except ValueError:
-                dd, mm, yyyy = (int(part) for part in date.split("-"))
-                day = _date(yyyy, mm, dd)
-        url = (
-            "https://www.espncricinfo.com/live-cricket-match-results"
-            f"?date={day:%d-%m-%Y}"
-        )
+        return [ref for ref, _, _ in _results_page(_as_day(date))]
 
-        next_data = _playwright_fetch(url)
+    @staticmethod
+    def get_matches_on(date: _date | str | None = None) -> list[MatchRef]:
+        """Return MatchRefs for the matches being played on one day.
+
+        A match counts if the day falls between its start and end dates, so a
+        Test appears on each of its days.
+
+        Args:
+            date: A ``datetime.date`` or a string in YYYY-MM-DD or DD-MM-YYYY
+                form; defaults to today.
+
+        Returns:
+            The matches on that day.
+        """
+        day = _as_day(date)
+        return [ref for ref, start, end in _results_page(day) if start <= day <= end]
+
+
+def _as_day(date: _date | str | None) -> _date:
+    """Parse a date argument; ESPN's results page wants DD-MM-YYYY."""
+    if date is None:
+        return _datetime.now().astimezone().date()
+    if isinstance(date, _date):
+        return date
+    try:
+        return _date.fromisoformat(date)
+    except ValueError:
+        dd, mm, yyyy = (int(part) for part in date.split("-"))
+        return _date(yyyy, mm, dd)
+
+
+def _results_page(day: _date) -> list[tuple[MatchRef, _date, _date]]:
+    """(MatchRef, start date, end date) for each match on the results page."""
+    url = f"https://www.espncricinfo.com/live-cricket-match-results?date={day:%d-%m-%Y}"
+    next_data = _playwright_fetch(url)
+    try:
+        matches = next_data["props"]["appPageProps"]["data"]["data"]["content"][
+            "matches"
+        ]
+    except (KeyError, TypeError):
+        return []
+    results = []
+    for m in matches:
         try:
-            matches = next_data["props"]["appPageProps"]["data"]["data"]["content"][
-                "matches"
-            ]
-        except (KeyError, TypeError):
-            return []
-
-        results = []
-        for m in matches:
-            try:
-                series_id = m["series"]["objectId"]
-                match_id = m["objectId"]
-                results.append(MatchRef(series_id=series_id, match_id=match_id))
-            except (KeyError, TypeError):
-                continue
-        return results
+            ref = MatchRef(series_id=m["series"]["objectId"], match_id=m["objectId"])
+            start = _date.fromisoformat(m["startDate"][:10])
+            end = _date.fromisoformat((m.get("endDate") or m["startDate"])[:10])
+        except (KeyError, TypeError, ValueError):
+            continue
+        results.append((ref, start, end))
+    return results

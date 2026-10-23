@@ -509,3 +509,47 @@ def test_live_old_test_has_no_over_data_and_no_invented_boundaries():
     match = Match(63963, 61791)
     assert all(overs == [] for overs in match.over_by_over)
     assert all(inn["fours"] is None or inn["fours"] >= 0 for inn in match.innings)
+
+
+def _results_page_with(*matches):
+    items = [
+        {
+            "objectId": mid,
+            "series": {"objectId": 1},
+            "startDate": f"{start}T00:00:00.000Z",
+            "endDate": f"{end}T00:00:00.000Z",
+        }
+        for mid, start, end in matches
+    ]
+    return {
+        "props": {"appPageProps": {"data": {"data": {"content": {"matches": items}}}}}
+    }
+
+
+def test_get_matches_on_keeps_matches_spanning_the_day():
+    page = _results_page_with(
+        (10, "2026-10-20", "2026-10-20"),  # one-day match on the day
+        (11, "2026-10-19", "2026-10-22"),  # Test in progress
+        (12, "2026-10-19", "2026-10-19"),  # finished the day before
+        (13, "2026-10-21", "2026-10-21"),  # next day
+    )
+    with patch("espncricinfo.match._playwright_fetch", return_value=page) as fetch:
+        refs = Match.get_matches_on("2026-10-20")
+    assert [r.match_id for r in refs] == [10, 11]
+    assert fetch.call_args.args[0].endswith("?date=20-10-2026")
+
+
+def test_get_recent_matches_still_returns_every_listed_match():
+    page = _results_page_with(
+        (10, "2026-10-20", "2026-10-20"), (12, "2026-10-19", "2026-10-19")
+    )
+    with patch("espncricinfo.match._playwright_fetch", return_value=page):
+        assert [r.match_id for r in Match.get_recent_matches("2026-10-20")] == [10, 12]
+
+
+@pytest.mark.integration
+def test_live_matches_on_a_day_are_a_subset_of_recent_matches():
+    on_day = Match.get_matches_on("2026-10-20")
+    recent = Match.get_recent_matches("2026-10-20")
+    assert on_day
+    assert set(on_day) < set(recent)
