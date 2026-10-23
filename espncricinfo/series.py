@@ -1,15 +1,17 @@
 """Series (ESPN "league") records from the ESPN core API."""
 
+import re
 from functools import cached_property
 from typing import Any
 
 from espncricinfo import _core
 from espncricinfo._core import collection_refs, get_json
-from espncricinfo.exceptions import NoSeriesError
+from espncricinfo.exceptions import NoSeasonError, NoSeriesError
 from espncricinfo.match_ref import MatchRef
 from espncricinfo.seasons import Season
 
 _LEAGUES = "http://core.espnuk.org/v2/sports/cricket/leagues"
+_SEASON_KEY = re.compile(r"(\d{4})(?:[/-](\d{2}|\d{4}))?")
 
 
 class Series:
@@ -87,6 +89,39 @@ class Series:
     def season_objects(self) -> list[Season]:
         """Every season of the series, loaded on first access."""
         return [Season.from_reference(url) for url in self.seasons]
+
+    def season(self, key: int | str) -> Season:
+        """Return one season, by year or by ESPNcricinfo's two-year label.
+
+        Multi-year seasons live under their own series id, which this exposes
+        as ``season.series_id``: for the Big Bash League,
+        ``Series(8044).season("2024/25").series_id`` is ``1443056``.
+
+        Args:
+            key: ``2024``, ``"2024"``, ``"2024/25"``, ``"2024-25"`` or
+                ``"2024/2025"``. A bare year matches the season starting then.
+
+        Returns:
+            The matching season.
+
+        Raises:
+            NoSeasonError: If the series has no such season.
+        """
+        match = _SEASON_KEY.fullmatch(str(key).strip())
+        if match is None:
+            raise NoSeasonError(f"Not a season year or label: {key!r}")
+        start, end = match.groups()
+        ref = next(
+            (r for r in self.seasons if r.rstrip("/").endswith(f"/{start}")), None
+        )
+        if ref is None:
+            raise NoSeasonError(f"{self.name} has no season starting in {start}")
+        season = Season.from_reference(ref)
+        if end is not None and season.label != f"{start}/{end[-2:]}":
+            raise NoSeasonError(
+                f"{self.name} {start} season is labeled {season.label!r}, not {key!r}"
+            )
+        return season
 
     @cached_property
     def current_season(self) -> Season | None:

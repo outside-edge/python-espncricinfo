@@ -24,8 +24,11 @@ class Season:
     series_id: int
     #: Core API URL of the season.
     url: str
-    #: ``2025``.
+    #: ESPN's season year, the year the season starts: ``2024`` for 2024/25.
     year: int
+    #: ESPNcricinfo's label: ``'2024/25'`` for a season that crosses New Year,
+    #: otherwise the year, e.g. ``'2025'``.
+    label: str
     #: ``'Indian Premier League 2025'``.
     name: str | None
     #: Short name, or None.
@@ -56,6 +59,7 @@ class Season:
         self.short_name = self.json.get("shortName")
         self.start_date = _parse_date(self.json.get("startDate"))
         self.end_date = _parse_date(self.json.get("endDate"))
+        self.label = _label(self.year, self.start_date, self.end_date)
 
     @classmethod
     def from_reference(cls, url: str) -> Season:
@@ -89,6 +93,12 @@ class Season:
     def __repr__(self) -> str:
         """Return a constructor-style summary."""
         return f"Season(id={self.id}, series_id={self.series_id}, name={self.name!r})"
+
+
+def _label(year: int, start: datetime | None, end: datetime | None) -> str:
+    if start and end and end.year > start.year:
+        return f"{start.year}/{end.year % 100:02d}"
+    return str(year)
 
 
 def _parse_date(value: str | None) -> datetime | None:
