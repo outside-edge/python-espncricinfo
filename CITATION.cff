@@ -5,6 +5,7 @@ authors:
     given-names: "Derek"
 title: "python-espncricinfo: A Python client for ESPNcricinfo match, series and player data"
 version: 1.0.0
+date-released: 2026-10-23
 url: "https://github.com/outside-edge/python-espncricinfo"
 repository-code: "https://github.com/outside-edge/python-espncricinfo"
 license: MIT
