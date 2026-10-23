@@ -34,80 +34,79 @@ After installation, install the Playwright WebKit browser (required for fetching
 uv run playwright install webkit
 ```
 
-## Usage
+<!-- USAGE-START -->
 
-For a summary of live matches, create an instance of the `Summary` class:
+## Recent matches
 
-```python
->>> from espncricinfo.summary import Summary
->>> s = Summary()
->>> s.matches
-[MatchRef(series_id=1478874, match_id=1478914), ...]
->>> for ref in s.matches:
-...     m = ref.to_match()
-...     print(m.description)
-
-# Tuple unpacking also works:
->>> for series_id, match_id in s.matches:
-...     print(series_id, match_id)
-```
-
-For individual matches, pass in both the match ID and series ID. These can be discovered from `get_recent_matches()`, or read from a match page URL (the two numeric IDs in the URL path):
+`Summary().matches` lists the matches on ESPNcricinfo's results page. Pass a date to look back; ESPN returns about two weeks of matches ending on that day.
 
 ```python
 >>> from espncricinfo.match import Match
->>> from espncricinfo.match_ref import MatchRef
->>> # Get recent matches as MatchRef objects
->>> Match.get_recent_matches(date="2026-02-06")
-[MatchRef(series_id=1478874, match_id=1478914), ...]
->>> # Construct a match directly
->>> m = Match(1478914, 1478874)
+>>> refs = Match.get_recent_matches(date="2026-02-28")
+>>> len(refs)
+195
+>>> refs[0]
+MatchRef(series_id=1523975, match_id=1523981)
+>>> series_id, match_id = refs[0]  # MatchRefs unpack like tuples
+```
+
+`Summary(date=...)` wraps the same call; its result is in `.matches`.
+
+## A single match
+
+A match needs both its match ID and series ID: the two numbers in a match page URL, or a `MatchRef`. Loading a match starts a headless WebKit browser.
+
+```python
+>>> m = Match(1478914, 1478874)  # same as MatchRef(1478874, 1478914).to_match()
 >>> m.description
 'IND Women v AUS Women'
 >>> m.match_class
 'WT20I'
 >>> m.result
 'IND Women won by 17 runs'
+>>> m.batting_scorecard[0][0]["name"], m.batting_scorecard[0][0]["runs"]
+('S Mandhana', 82)
+>>> m.bowling_scorecard[0][0]["name"], m.bowling_scorecard[0][0]["wickets"]
+('D Brown', 0)
 ```
 
-A full list of methods available to an instance of the `Match` class is in [the code](https://github.com/outside-edge/python-espncricinfo/blob/master/espncricinfo/match.py).
+`batting_scorecard` and `bowling_scorecard` hold one list per innings and one dict per player.
 
-For player details, pass in the player ID (found in a player's URL - for example, [Ajinkya Rahane](http://www.espncricinfo.com/west-indies-v-india-2016/content/player/277916.html) is '277916'):
+## Players
+
+The player ID is the number at the end of a player's profile URL.
 
 ```python
 >>> from espncricinfo.player import Player
->>> p = Player('277916')
->>> p.name
-'Ajinkya Rahane'
+>>> p = Player(277916)
+>>> p.full_name
+'Ajinkya Madhukar Rahane'
+>>> p.get_data(file_name="rahane_tests.csv", match_format=1, data_type="batting")
 ```
 
-A full list of methods available to an instance of the `Player` class is in [the code](https://github.com/outside-edge/python-espncricinfo/blob/master/espncricinfo/player.py).
+`get_data` writes one row per match (85 Tests for Rahane); `get_career_summary` and `get_career_averages` write the summary tables from the same Statsguru page.
 
-For series (or league) details, pass in the series ID (found in a match URL, for example, [India's 2018 tour of England](http://www.espncricinfo.com/series/18018/game/1119549/england-vs-india-1st-test-ind-in-eng-2018) is '18018'):
+## Series, seasons and teams
 
 ```python
 >>> from espncricinfo.series import Series
->>> s = Series('18018')
->>> s.name
-'India tour of Ireland and England 2018'
+>>> ipl = Series(1449924)
+>>> ipl.name
+'Indian Premier League'
+>>> season = ipl.current_season
+>>> season.year, len(season.teams)
+(2025, 10)
+>>> season.teams[0].name
+'Chennai Super Kings'
 ```
 
-Navigate from a series to its seasons, teams, and matches:
+`series.season_objects` lists every season and `season.match_refs` that season's matches. `series.matches` collects MatchRefs across all seasons (1,254 for the IPL), and `series.current_matches` keeps those in progress. `team.players` loads the squad on demand. ESPN's records for some bilateral tours are incomplete, for example listing one team for a two-team series.
 
-```python
-from espncricinfo.series import Series
+<!-- USAGE-END -->
 
-series = Series(1478874)
-season = series.current_season
-for team in season.teams:
-    print(team.name, team.match)
-for ref in series.matches:
-    print(ref.series_id, ref.match_id)
-```
+## Development
 
-`series.season_objects` lists all seasons. `season.match_refs` lists that season's matches, while `series.current_matches` contains only matches whose ESPN status is in progress. These match lists contain lightweight `MatchRef` objects; loading a full `Match` launches Playwright. `team.players` loads player records on demand.
-
-## Tests
+<!-- DEV-START -->
 
 **Unit tests** (no network required — uses recorded fixtures):
 

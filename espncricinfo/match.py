@@ -264,8 +264,26 @@ class Match:
     """One match, loaded from its ESPNcricinfo full-scorecard page.
 
     Loading launches a headless WebKit browser, because the site's CDN refuses
-    plain HTTP clients. Fields are exposed as attributes (``description``,
-    ``result``, ``team_1``, ...) plus scorecard properties.
+    plain HTTP clients. Fields are exposed as attributes plus the scorecard
+    properties below. Values shown are for ``Match(1478914, 1478874)``.
+
+    Attributes:
+        description: ``'IND Women v AUS Women'``.
+        match_class: Format, e.g. ``'WT20I'``, ``'T20'``, ``'Test'``.
+        status: ESPN match status, e.g. ``'result'``.
+        result: ``'IND Women won by 17 runs'``.
+        date: Start date as ``'YYYY-MM-DD'``.
+        season: ``'2025/26'``.
+        series_name: ``'India Women in Australia'``.
+        ground_name: ``'Adelaide Oval'``.
+        innings_list: Innings numbers as strings, ``['1', '2']``.
+        team_1: Dict with ``team_id``, ``team_abbreviation``, ``team_name``,
+            ``team_long_name`` and ``player``; ``team_2`` likewise.
+        team_1_players: ESPN's raw player records; ``team_2_players`` likewise.
+        toss_winner: Team id of the toss winner, e.g. ``'1812'``.
+        toss_decision_name: ``'bat'`` or ``'bowl'``.
+        match_winner: Abbreviation of the winner, e.g. ``'IND-W'``.
+        batting_first: Abbreviation of the side that batted first.
     """
 
     def __init__(self, match_id: int | str, series_id: int | str) -> None:
