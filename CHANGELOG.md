@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-23
+
 ### Fixed
 
 - Match pages and `Summary()` load inside Jupyter and other code that already
