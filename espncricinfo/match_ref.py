@@ -1,18 +1,21 @@
+"""Lightweight (series_id, match_id) references."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from espncricinfo._core import reference_ids
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator, Mapping, Sequence
+
     from espncricinfo.match import Match
 
 
 @dataclass(frozen=True)
 class MatchRef:
-    """
-    A lightweight reference to an ESPN Cricinfo match.
+    """A lightweight reference to an ESPN Cricinfo match.
 
     Stores the ``series_id`` and ``match_id`` needed to construct a
     :class:`~espncricinfo.match.Match`. Supports dict and CSV serialization
@@ -32,42 +35,42 @@ class MatchRef:
     series_id: int
     match_id: int
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
+        """Coerce both ids to int."""
         object.__setattr__(self, "series_id", int(self.series_id))
         object.__setattr__(self, "match_id", int(self.match_id))
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[int]:
         """Yield series_id then match_id — enables tuple unpacking."""
         yield self.series_id
         yield self.match_id
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, int]:
         """Return ``{"series_id": int, "match_id": int}``."""
         return {"series_id": self.series_id, "match_id": self.match_id}
 
     @classmethod
-    def from_dict(cls, d: dict) -> "MatchRef":
+    def from_dict(cls, d: Mapping[str, Any]) -> MatchRef:
         """Construct from a mapping with ``series_id`` and ``match_id`` keys."""
         return cls(series_id=d["series_id"], match_id=d["match_id"])
 
     @classmethod
-    def from_core_event_url(cls, url: str) -> "MatchRef":
+    def from_core_event_url(cls, url: str) -> MatchRef:
         """Construct from a core ESPN event reference."""
         series_id, match_id = reference_ids(url, "events")
         return cls(series_id=series_id, match_id=match_id)
 
-    def to_csv_row(self) -> list:
+    def to_csv_row(self) -> list[str]:
         """Return ``[str(series_id), str(match_id)]`` for use with ``csv.writer``."""
         return [str(self.series_id), str(self.match_id)]
 
     @classmethod
-    def from_csv_row(cls, row) -> "MatchRef":
+    def from_csv_row(cls, row: Sequence[str | int]) -> MatchRef:
         """Construct from a 2-element sequence ``[series_id, match_id]``."""
-        return cls(series_id=row[0], match_id=row[1])
+        return cls(series_id=int(row[0]), match_id=int(row[1]))
 
-    def to_match(self) -> "Match":
-        """
-        Hydrate a full :class:`~espncricinfo.match.Match` object.
+    def to_match(self) -> Match:
+        """Hydrate a full :class:`~espncricinfo.match.Match` object.
 
         Triggers a Playwright fetch — use only when you need full match data.
         """

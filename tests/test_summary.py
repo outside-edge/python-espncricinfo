@@ -16,16 +16,16 @@ class TestSummary(unittest.TestCase):
             "espncricinfo.summary.Match.get_recent_matches", return_value=FAKE_MATCHES
         ):
             s = Summary()
-            self.assertIsInstance(s.matches, list)
+            assert isinstance(s.matches, list)
 
     def test_summary_matches_returns_match_refs(self):
         with patch(
             "espncricinfo.summary.Match.get_recent_matches", return_value=FAKE_MATCHES
         ):
             s = Summary()
-            self.assertEqual(len(s.matches), 2)
+            assert len(s.matches) == 2
             for ref in s.matches:
-                self.assertIsInstance(ref, MatchRef)
+                assert isinstance(ref, MatchRef)
 
     def test_summary_passes_date_to_get_recent_matches(self):
         with patch(
@@ -47,5 +47,5 @@ class TestSummary(unittest.TestCase):
         ):
             s = Summary()
             series_id, match_id = s.matches[0]
-            self.assertEqual(series_id, 1478874)
-            self.assertEqual(match_id, 1478914)
+            assert series_id == 1478874
+            assert match_id == 1478914

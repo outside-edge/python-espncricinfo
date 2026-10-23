@@ -51,7 +51,7 @@ def test_team_uses_reference_league_and_resolves_match_without_browser():
             },
         ),
     }
-    with patch("espncricinfo._core.requests.get", side_effect=fake_get(routes)) as get:
+    with patch("espncricinfo._core.http_get", side_effect=fake_get(routes)) as get:
         team = Team.from_reference(team_url)
         assert (team.id, team.series_id, team.name) == (1812, 23262, "India Women")
         assert team.short_name == "IND-W"
@@ -91,7 +91,7 @@ def test_season_loads_teams_and_all_event_pages_lazily():
             {"pageCount": 2, "items": [{"$ref": f"{ROOT}/23262/events/1478918"}]},
         ),
     }
-    with patch("espncricinfo._core.requests.get", side_effect=fake_get(routes)) as get:
+    with patch("espncricinfo._core.http_get", side_effect=fake_get(routes)) as get:
         season = Season.from_reference(season_url)
         assert season.year == 2026
         assert season.start_date.month == 2
@@ -147,7 +147,7 @@ def test_series_navigation_uses_canonical_references_and_live_status():
         f"{past_event}/status": (200, {"type": {"state": "post"}}),
         f"{live_event}/status": (200, {"type": {"state": "in"}}),
     }
-    with patch("espncricinfo._core.requests.get", side_effect=fake_get(routes)):
+    with patch("espncricinfo._core.http_get", side_effect=fake_get(routes)):
         series = Series(1478874)
         assert series.years == ["2026"]
         assert series.current_season.year == 2026
@@ -176,7 +176,7 @@ def test_series_without_seasons_uses_direct_event_references():
         f"{url}/events": (200, {"items": [{"$ref": event_url}]}),
         event_url: (200, {"competitions": []}),
     }
-    with patch("espncricinfo._core.requests.get", side_effect=fake_get(routes)):
+    with patch("espncricinfo._core.http_get", side_effect=fake_get(routes)):
         series = Series(999)
         assert series.current_season is None
         assert series.matches == [MatchRef(999, 123)]
@@ -187,7 +187,7 @@ def test_series_without_seasons_uses_direct_event_references():
     [("https://example.org/no-team/1", "teams"), ("/leagues/a/events/1", "events")],
 )
 def test_invalid_references_are_rejected(reference, resource):
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Invalid"):
         reference_ids(reference, resource)
 
 
@@ -199,11 +199,11 @@ def test_invalid_references_are_rejected(reference, resource):
     ],
 )
 def test_missing_resource_raises_specific_error(cls, url, error):
-    with patch(
-        "espncricinfo._core.requests.get", side_effect=fake_get({url: (404, {})})
+    with (
+        patch("espncricinfo._core.http_get", side_effect=fake_get({url: (404, {})})),
+        pytest.raises(error),
     ):
-        with pytest.raises(error):
-            cls.from_reference(url)
+        cls.from_reference(url)
 
 
 @pytest.mark.integration

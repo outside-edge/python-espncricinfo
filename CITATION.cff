@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: "Willis"
+    given-names: "Derek"
+title: "python-espncricinfo: A Python client for ESPNcricinfo match, series and player data"
+version: 1.0.0
+url: "https://github.com/outside-edge/python-espncricinfo"
+repository-code: "https://github.com/outside-edge/python-espncricinfo"
+license: MIT

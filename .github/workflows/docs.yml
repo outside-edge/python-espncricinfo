@@ -1,0 +1,23 @@
+name: Docs
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  docs:
+    uses: gojiplus/py-canon/.github/workflows/reusable-docs.yml@v1
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    with:
+      deploy: ${{ github.event_name == 'push' }}

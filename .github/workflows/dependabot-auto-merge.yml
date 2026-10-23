@@ -1,0 +1,21 @@
+name: Dependabot auto-merge
+
+# All the logic lives in py-canon, so a fix there reaches this repo on its
+# next run instead of waiting for someone to copy a file across.
+
+on:
+  pull_request:
+  schedule:
+    # Every three hours, offset off the hour so it does not queue behind the
+    # crowd of on-the-hour jobs.
+    - cron: "37 */3 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  auto-merge:
+    permissions:
+      contents: write        # arm auto-merge, or squash-merge outright
+      pull-requests: write   # label, comment, merge
+    uses: gojiplus/py-canon/.github/workflows/reusable-dependabot-auto-merge.yml@v1

@@ -1,6 +1,6 @@
+import datetime as dt
 import json
 import unittest
-import warnings
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -14,8 +14,8 @@ FIXTURE_DIR = Path(__file__).parent / "fixtures"
 
 
 def _load(name):
-    with open(FIXTURE_DIR / name) as f:
-        return json.load(f) if name.endswith(".json") else f.read()
+    text = (FIXTURE_DIR / name).read_text()
+    return json.loads(text) if name.endswith(".json") else text
 
 
 def _mock_response(json_data=None, text=None, status_code=200):
@@ -33,14 +33,14 @@ def _mock_response(json_data=None, text=None, status_code=200):
 def _make_player():
     json_data = _load("player_253802.json")
 
-    def side_effect(url, headers=None):
+    def side_effect(url, headers=None, timeout=None):
         if "/athletes/" in url:
             return _mock_response(json_data=json_data)
         if "/teams/" in url:
             return _mock_response(json_data={"name": f"Team {url.rsplit('/', 1)[-1]}"})
         raise AssertionError(f"Unexpected request: {url}")
 
-    with patch("espncricinfo.player.requests.get", side_effect=side_effect):
+    with patch("espncricinfo._core.http_get", side_effect=side_effect):
         player = Player(253802)
         _ = player.major_teams
         return player
@@ -51,46 +51,40 @@ class TestPlayerAttributes(unittest.TestCase):
     def setUpClass(cls):
         cls.player = _make_player()
 
-    def test_cricinfo_id_is_string(self):
-        self.assertEqual(self.player.cricinfo_id, "253802")
+    def test_player_id_is_int(self):
+        assert self.player.player_id == 253802
 
     def test_name_is_nonempty_string(self):
-        self.assertIsInstance(self.player.name, str)
-        self.assertTrue(len(self.player.name) > 0)
+        assert isinstance(self.player.name, str)
+        assert len(self.player.name) > 0
 
     def test_first_name_is_string(self):
-        self.assertIsInstance(self.player.first_name, str)
+        assert isinstance(self.player.first_name, str)
 
     def test_full_name_is_nonempty_string(self):
-        self.assertIsInstance(self.player.full_name, str)
-        self.assertTrue(len(self.player.full_name) > 0)
+        assert isinstance(self.player.full_name, str)
+        assert len(self.player.full_name) > 0
 
-    def test_date_of_birth_is_set(self):
-        self.assertIsNotNone(self.player.date_of_birth)
-        self.assertTrue(len(str(self.player.date_of_birth)) > 0)
+    def test_date_of_birth_is_a_date(self):
+        assert self.player.date_of_birth == dt.date(1988, 11, 5)
 
-    def test_current_age_is_set(self):
-        self.assertIsNotNone(self.player.current_age)
+    def test_age(self):
+        assert self.player.age == 37
 
-    def test_playing_role_is_string_or_none(self):
-        role = self.player.playing_role
-        self.assertTrue(role is None or isinstance(role, (str, dict)))
+    def test_playing_role(self):
+        assert self.player.playing_role == "Top-order batter"
 
-    def test_batting_style_is_dict_or_none(self):
-        style = self.player.batting_style
-        self.assertTrue(style is None or isinstance(style, dict))
-
-    def test_bowling_style_is_dict_or_none(self):
-        style = self.player.bowling_style
-        self.assertTrue(style is None or isinstance(style, dict))
+    def test_styles_are_descriptions(self):
+        assert self.player.batting_style == "Right-hand bat"
+        assert self.player.bowling_style == "Right-arm medium"
 
     def test_major_teams_is_nonempty_list(self):
-        self.assertIsInstance(self.player.major_teams, list)
-        self.assertTrue(len(self.player.major_teams) > 0)
+        assert isinstance(self.player.major_teams, list)
+        assert len(self.player.major_teams) > 0
 
     def test_major_teams_are_strings(self):
         for team in self.player.major_teams:
-            self.assertIsInstance(team, str)
+            assert isinstance(team, str)
 
     def test_major_teams_resolve_core_references_once(self):
         player_data = _load("player_253802.json")
@@ -103,28 +97,32 @@ class TestPlayerAttributes(unittest.TestCase):
             _mock_response(json_data={"displayName": "India"}),
             _mock_response(json_data={"name": "Delhi"}),
         ]
-        with patch("espncricinfo.player.requests.get", side_effect=responses) as get:
+        with patch("espncricinfo._core.http_get", side_effect=responses) as get:
             player = Player(253802)
-            self.assertEqual(get.call_count, 1)
-            self.assertEqual(player.major_teams, ["India", "Delhi"])
-            self.assertEqual(player.major_teams, ["India", "Delhi"])
-            self.assertEqual(get.call_count, 3)
+            assert get.call_count == 1
+            assert player.major_teams == ["India", "Delhi"]
+            assert player.major_teams == ["India", "Delhi"]
+            assert get.call_count == 3
 
 
 class TestPlayerErrors(unittest.TestCase):
     def test_404_raises_player_not_found(self):
         mock_404 = _mock_response(status_code=404)
-        with patch("espncricinfo.player.requests.get", return_value=mock_404):
-            with self.assertRaises(PlayerNotFoundError):
-                Player(999999)
+        with (
+            patch("espncricinfo._core.http_get", return_value=mock_404),
+            pytest.raises(PlayerNotFoundError),
+        ):
+            Player(999999)
 
     def test_non_404_http_error_is_not_decoded_as_json(self):
         denied = Response()
         denied.status_code = 403
         denied._content = b"<html>Access Denied</html>"
-        with patch("espncricinfo.player.requests.get", return_value=denied):
-            with self.assertRaises(HTTPError):
-                Player(253802)
+        with (
+            patch("espncricinfo._core.http_get", return_value=denied),
+            pytest.raises(HTTPError),
+        ):
+            Player(253802)
 
 
 class TestPlayerIntegration:
@@ -152,33 +150,26 @@ class TestPlayerIntegration:
         assert len(player.major_teams) > 0
 
     @pytest.mark.integration
-    def test_live_cricinfo_id(self):
+    def test_live_player_id(self):
         player = Player(253802)
-        assert player.cricinfo_id == "253802"
+        assert player.player_id == 253802
 
 
-class TestPlayerDeprecatedMethods(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.player = _make_player()
-
-    def test_in_team_for_match_raises_not_implemented(self):
-        with self.assertRaises(NotImplementedError):
-            self.player.in_team_for_match(1478914, 1478874)
-
-    def test_batting_for_match_raises_not_implemented(self):
-        with self.assertRaises(NotImplementedError):
-            self.player.batting_for_match(1478914, 1478874)
-
-    def test_bowling_for_match_raises_not_implemented(self):
-        with self.assertRaises(NotImplementedError):
-            self.player.bowling_for_match(1478914, 1478874)
-
-    def test_in_team_for_match_emits_deprecation_warning(self):
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            try:
-                self.player.in_team_for_match(1478914, 1478874)
-            except NotImplementedError:
-                pass
-            self.assertTrue(any(issubclass(x.category, DeprecationWarning) for x in w))
+def test_get_data_requests_stats_page_and_writes_rows(tmp_path):
+    player = _make_player()
+    # ESPN's stats pages put each cell on its own line; get_data splits on that.
+    rows = (
+        "<tr>\n<td>Runs</td>\n<td>Ground</td>\n</tr>"
+        "<tr>\n<td>61</td>\n<td>Manchester</td>\n</tr>"
+    )
+    page = "<table></table>" * 3 + f"<table>{rows}</table>"
+    out = tmp_path / "data.csv"
+    with patch(
+        "espncricinfo._core.http_get", return_value=_mock_response(text=page)
+    ) as get:
+        player.get_data(file_name=str(out))
+    assert get.call_args.args[0].endswith(
+        f"/player/{player.player_id}.html?class=11;"
+        "template=results;type=allround;view=match"
+    )
+    assert out.read_text().splitlines() == [",Runs,Ground", ",61,Manchester"]

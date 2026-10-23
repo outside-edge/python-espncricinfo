@@ -1,240 +1,177 @@
-import csv
-import warnings
+"""Player records from the ESPN core API and the Statsguru pages."""
 
-import requests
+import csv
+from datetime import date
+from functools import cached_property
+from pathlib import Path
+from typing import Any
+
 from bs4 import BeautifulSoup
 
+from espncricinfo import _core
 from espncricinfo.exceptions import PlayerNotFoundError
 
+_ATHLETES = "http://core.espnuk.org/v2/sports/cricket/athletes"
 
-class Player(object):
-    def __init__(self, player_id):
-        self.player_id = player_id
-        self.url = "https://www.espncricinfo.com/player/player-name-{0}".format(
-            str(player_id)
-        )
-        self.json_url = "http://core.espnuk.org/v2/sports/cricket/athletes/{0}".format(
-            str(player_id)
-        )
-        self.headers = {"user-agent": "Mozilla/5.0"}
-        self.json = self.get_json()
-        self._major_teams_cache = None
-        self.cricinfo_id = str(player_id)
-        self.__unicode__ = self._full_name()
-        self.name = self._name()
-        self.first_name = self._first_name()
-        self.full_name = self._full_name()
-        self.date_of_birth = self._date_of_birth()
-        self.current_age = self._current_age()
-        self.playing_role = self._playing_role()
-        self.batting_style = self._batting_style()
-        self.bowling_style = self._bowling_style()
 
-    def get_html(self):
-        r = requests.get(self.url, headers=self.headers)
-        if r.status_code == 404:
-            raise PlayerNotFoundError
-        else:
-            return BeautifulSoup(r.text, "html.parser")
+class Player:
+    """A player, loaded from the ESPN core API athlete record.
 
-    def get_json(self):
-        r = requests.get(self.json_url, headers=self.headers)
-        if r.status_code == 404:
-            raise PlayerNotFoundError
-        r.raise_for_status()
-        return r.json()
+    Example values are for ``Player(277916)``, Ajinkya Rahane.
+    """
 
-    def _name(self):
-        return self.json["name"]
+    #: ESPNcricinfo player id.
+    player_id: int
+    #: Name as printed on scorecards, ``'Ajinkya Rahane'``.
+    name: str
+    #: ``'Ajinkya'``.
+    first_name: str
+    #: ``'Ajinkya Madhukar Rahane'``.
+    full_name: str
+    #: Date of birth, or None if ESPN has none.
+    date_of_birth: date | None
+    #: Age in years as ESPN reports it, or None.
+    age: int | None
+    #: ``'Top-order batter'``, or None.
+    playing_role: str | None
+    #: ``'Right-hand bat'``, or None.
+    batting_style: str | None
+    #: ``'Right-arm medium'``, or None.
+    bowling_style: str | None
+    #: The core API athlete record.
+    json: dict[str, Any]
 
-    def _first_name(self):
-        return self.json["firstName"]
+    def __init__(self, player_id: int | str) -> None:
+        """Load the player record.
 
-    def _middle_name(self):
-        return self.json["middleName"]
-
-    def _last_name(self):
-        return self.json["lastName"]
-
-    def _full_name(self):
-        return self.json["fullName"]
-
-    def _date_of_birth(self):
-        return self.json["dateOfBirth"]
-
-    def _current_age(self):
-        return self.json["age"]
-
-    @property
-    def major_teams(self):
-        if self._major_teams_cache is None:
-            teams = []
-            for reference in self.json.get("majorTeams", []):
-                response = requests.get(reference["$ref"], headers=self.headers)
-                response.raise_for_status()
-                team = response.json()
-                name = (
-                    team.get("longName") or team.get("displayName") or team.get("name")
-                )
-                if name:
-                    teams.append(name)
-            self._major_teams_cache = teams
-        return self._major_teams_cache
-
-    def _playing_role(self):
-        return self.json["position"]
-
-    def _batting_style(self):
-        return next((x for x in self.json["style"] if x["type"] == "batting"), None)
-
-    def _bowling_style(self):
-        return next((x for x in self.json["style"] if x["type"] == "bowling"), None)
-
-    def in_team_for_match(self, match_id, series_id):
+        Args:
+            player_id: ESPNcricinfo player id (the number in a profile URL).
         """
-        .. deprecated::
-            This method is not implemented against the current ESPN Cricinfo API.
-            Use Match(match_id, series_id).team_1_players and .team_2_players directly.
-        """
-        warnings.warn(
-            "in_team_for_match is deprecated and not implemented against the current API.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        raise NotImplementedError(
-            "in_team_for_match is not implemented against the current ESPN Cricinfo API. "
-            "Use Match(match_id, series_id).team_1_players and .team_2_players directly."
-        )
+        self.player_id = int(player_id)
+        self.json = self._get_json()
+        record = self.json
+        self.name = record["name"]
+        self.first_name = record.get("firstName", "")
+        self.full_name = record.get("fullName", self.name)
+        born = record.get("dateOfBirth")
+        self.date_of_birth = date.fromisoformat(born[:10]) if born else None
+        self.age = record.get("age")
+        self.playing_role = (record.get("position") or {}).get("name")
+        styles = {
+            style.get("type"): style.get("description")
+            for style in record.get("style") or []
+        }
+        self.batting_style = styles.get("batting")
+        self.bowling_style = styles.get("bowling")
 
-    def batting_for_match(self, match_id, series_id):
-        """
-        .. deprecated::
-            This method is not implemented against the current ESPN Cricinfo API.
-            Use Match(match_id, series_id).batsmen(innings) directly.
-        """
-        warnings.warn(
-            "batting_for_match is deprecated and not implemented against the current API.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        raise NotImplementedError(
-            "batting_for_match is not implemented against the current ESPN Cricinfo API. "
-            "Use Match(match_id, series_id).batsmen(innings) directly."
-        )
+    def __str__(self) -> str:
+        """Return the player's name."""
+        return self.name
 
-    def bowling_for_match(self, match_id, series_id):
+    def __repr__(self) -> str:
+        """Return ``Player(player_id)``."""
+        return f"Player({self.player_id})"
+
+    def _get_json(self) -> dict[str, Any]:
+        response = _core.http_get(f"{_ATHLETES}/{self.player_id}")
+        if response.status_code == 404:
+            raise PlayerNotFoundError(f"Player not found: {self.player_id}")
+        response.raise_for_status()
+        return response.json()
+
+    @cached_property
+    def major_teams(self) -> list[str]:
+        """Names of the player's major teams (one request per team, on first access)."""
+        teams = []
+        for reference in self.json.get("majorTeams", []):
+            response = _core.http_get(reference["$ref"])
+            response.raise_for_status()
+            team = response.json()
+            name = team.get("longName") or team.get("displayName") or team.get("name")
+            if name:
+                teams.append(name)
+        return teams
+
+    def _write_stats_table(self, query: str, table_index: int, file_name: str) -> None:
+        """Write one table of the player's stats page to ``file_name`` as CSV.
+
+        Each row's cells are on separate lines in ESPN's HTML, so a row's text
+        split on newlines gives its cells (with an empty leading cell).
         """
-        .. deprecated::
-            This method is not implemented against the current ESPN Cricinfo API.
-            Use Match(match_id, series_id).bowlers(innings) directly.
-        """
-        warnings.warn(
-            "bowling_for_match is deprecated and not implemented against the current API.",
-            DeprecationWarning,
-            stacklevel=2,
+        url = (
+            "https://stats.espncricinfo.com/ci/engine/player/"
+            f"{self.player_id}.html?{query}"
         )
-        raise NotImplementedError(
-            "bowling_for_match is not implemented against the current ESPN Cricinfo API. "
-            "Use Match(match_id, series_id).bowlers(innings) directly."
-        )
+        response = _core.http_get(url)
+        soup = BeautifulSoup(response.text, "html.parser")
+        table = soup.find_all("table")[table_index]
+        rows = [tr.text.splitlines() for tr in table.find_all("tr")]
+        with Path(file_name).open("w", newline="") as csv_file:
+            csv.writer(csv_file).writerows(rows)
 
     def get_career_averages(
-        self, file_name=None, match_format=11, data_type="allround"
-    ):
-        """Get Player career averages
+        self,
+        file_name: str | None = None,
+        match_format: int = 11,
+        data_type: str = "allround",
+    ) -> None:
+        """Write career averages (overall and by span) to a CSV file.
 
-        Arguements:
-            file_name {string}: File name to save data
-            match_format {int}: Match format (default is 11) (1-Test), (2-Odi) (3-T20I), (11-All International), (20-Youth Tests), (21-Youth ODI)
-            data_type {string}: Data type (default is allround) (allround, batting, bowling, fielding)
-
-        Return:
-            Data in csv file
+        Args:
+            file_name: Output path. Defaults to
+                ``{player_id}_{match_format}_{data_type}_career_averages.csv``.
+            match_format: 1 Test, 2 ODI, 3 T20I, 11 all international,
+                20 youth Test, 21 youth ODI.
+            data_type: ``allround``, ``batting``, ``bowling`` or ``fielding``.
         """
-        self.match_format = match_format
-        self.data_type = data_type
-        self.file_name = file_name
+        if file_name is None:
+            file_name = (
+                f"{self.player_id}_{match_format}_{data_type}_career_averages.csv"
+            )
+        query = f"class={match_format};template=results;type={data_type}"
+        self._write_stats_table(query, 2, file_name)
 
-        if self.file_name is None:
-            self.file_name = f"{self.player_id}_{self.match_format}_{self.data_type}_career_averages.csv"
+    def get_career_summary(
+        self,
+        file_name: str | None = None,
+        match_format: int = 11,
+        data_type: str = "allround",
+    ) -> None:
+        """Write the career summary (one row per format, venue, opponent...) to CSV.
 
-        self.url = f"https://stats.espncricinfo.com/ci/engine/player/{self.player_id}.html?class={self.match_format};template=results;type={self.data_type}"
-        html_doc = requests.get(self.url, headers=self.headers)
-        soup = BeautifulSoup(html_doc.text, "html.parser")
-        tables = soup.find_all("table")[2]
-        table_rows = tables.find_all("tr")
-        scores = []
-        for tr in table_rows:
-            scores.append(tr.text)
-        with open(self.file_name, "w") as csv_file:
-            writer = csv.writer(csv_file, delimiter=",")
-            for row in scores:
-                writer.writerow(row.splitlines())
-
-    def get_career_summary(self, file_name=None, match_format=11, data_type="allround"):
-        """Get Player data match by match sorted by date
-
-        Arguements:
-            file_name {string}: File name to save data
-            match_format {int}: Match format (default is 11) (1-Test), (2-Odi) (3-T20I), (11-All International), (20-Youth Tests), (21-Youth ODI)
-            data_type {string}: Data type (default is allround) (allround, batting, bowling, fielding)
-
-        Return:
-            Data in csv file
+        Args:
+            file_name: Output path. Defaults to
+                ``{player_id}_{match_format}_{data_type}_career_summary.csv``.
+            match_format: 1 Test, 2 ODI, 3 T20I, 11 all international,
+                20 youth Test, 21 youth ODI.
+            data_type: ``allround``, ``batting``, ``bowling`` or ``fielding``.
         """
-        self.match_format = match_format
-        self.data_type = data_type
-        self.file_name = file_name
-
-        if self.file_name is None:
-            self.file_name = f"{self.player_id}_{self.match_format}_{self.data_type}_career_summary.csv"
-
-        self.url = f"https://stats.espncricinfo.com/ci/engine/player/{self.player_id}.html?class={self.match_format};template=results;type={self.data_type}"
-        html_doc = requests.get(self.url, headers=self.headers)
-        soup = BeautifulSoup(html_doc.text, "html.parser")
-        tables = soup.find_all("table")[3]
-        table_rows = tables.find_all("tr")
-        scores = []
-        for tr in table_rows:
-            scores.append(tr.text)
-        with open(self.file_name, "w") as csv_file:
-            writer = csv.writer(csv_file, delimiter=",")
-            for row in scores:
-                writer.writerow(row.splitlines())
+        if file_name is None:
+            file_name = (
+                f"{self.player_id}_{match_format}_{data_type}_career_summary.csv"
+            )
+        query = f"class={match_format};template=results;type={data_type}"
+        self._write_stats_table(query, 3, file_name)
 
     def get_data(
-        self, file_name=None, match_format=11, data_type="allround", view="match"
-    ):
-        """Get Player data match by match sorted by date
+        self,
+        file_name: str | None = None,
+        match_format: int = 11,
+        data_type: str = "allround",
+        view: str = "match",
+    ) -> None:
+        """Write the player's record match by match (or another view) to CSV.
 
-        Arguements:
-            file_name {string}: File name to save data
-            match_format {int}: Match format (default is 11) (1-Test), (2-Odi) (3-T20I), (11-All International), (20-Youth Tests), (21-Youth ODI)
-            data_type {string}: Data type (default is allround) (allround, batting, bowling, fielding)
-            view {string}: View type (default is match) (match, innings, cumulative, reverse_cumulative, series, tour, ground)
-
-        Return:
-            Data in csv file
+        Args:
+            file_name: Output path. Defaults to
+                ``{player_id}_{match_format}_{data_type}_{view}.csv``.
+            match_format: 1 Test, 2 ODI, 3 T20I, 11 all international,
+                20 youth Test, 21 youth ODI.
+            data_type: ``allround``, ``batting``, ``bowling`` or ``fielding``.
+            view: ``match``, ``innings``, ``cumulative``, ``reverse_cumulative``,
+                ``series``, ``tour`` or ``ground``.
         """
-        self.match_format = match_format
-        self.data_type = data_type
-        self.view = view
-        self.file_name = file_name
-
-        if self.file_name is None:
-            self.file_name = (
-                f"{self.player_id}_{self.match_format}_{self.data_type}_{self.view}.csv"
-            )
-
-        self.url = f"https://stats.espncricinfo.com/ci/engine/player/{self.player_id}.html?class={self.match_format};template=results;type={self.data_type};view={self.view}"
-        html_doc = requests.get(self.url, headers=self.headers())
-        soup = BeautifulSoup(html_doc.text, "html.parser")
-        tables = soup.find_all("table")[3]
-        table_rows = tables.find_all("tr")
-        scores = []
-        for tr in table_rows:
-            scores.append(tr.text)
-        with open(self.file_name, "w") as csv_file:
-            writer = csv.writer(csv_file, delimiter=",")
-            for row in scores:
-                writer.writerow(row.splitlines())
+        if file_name is None:
+            file_name = f"{self.player_id}_{match_format}_{data_type}_{view}.csv"
+        query = f"class={match_format};template=results;type={data_type};view={view}"
+        self._write_stats_table(query, 3, file_name)
