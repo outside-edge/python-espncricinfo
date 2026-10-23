@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-23
+
 First release since 0.6.1 (2021). The 0.5.x/0.6.x releases call ESPN endpoints
 that no longer respond, and 0.6/0.6.1 were uploaded only as eggs, which pip
 cannot install.
