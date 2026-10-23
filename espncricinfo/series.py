@@ -101,6 +101,9 @@ class Series:
             key: ``2024``, ``"2024"``, ``"2024/25"``, ``"2024-25"`` or
                 ``"2024/2025"``. A bare year matches the season starting then.
 
+        Returns:
+            The matching season.
+
         Raises:
             NoSeasonError: If the series has no such season.
         """
