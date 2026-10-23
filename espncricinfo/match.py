@@ -256,7 +256,9 @@ def _normalize(next_data, match_id, series_id):
         "series": [
             {
                 "series_name": series_data.get("name", ""),
-                "core_recreation_id": str(series_data.get("objectId", series_id)),
+                "core_recreation_id": str(
+                    series_data.get("objectId") or series_id or ""
+                ),
                 "slug": series_data.get("slug", ""),
             }
         ],
@@ -424,21 +426,32 @@ class Match:
     #: The parsed page, reshaped by ``_normalize``. Prefer the attributes.
     json: dict[str, Any]
 
-    def __init__(self, match_id: int | str, series_id: int | str) -> None:
+    def __init__(self, match_id: int | str, series_id: int | str | None = None) -> None:
         """Fetch and parse the match.
 
         Args:
             match_id: ESPNcricinfo match (event) id.
-            series_id: ESPNcricinfo series (league) id the match belongs to.
+            series_id: ESPNcricinfo series id the match belongs to. Optional:
+                without it the match page is found from the match id alone,
+                and ``series_id`` is read from the page.
+
+        Raises:
+            MatchNotFoundError: If ESPNcricinfo has no such match.
         """
         self.match_id = int(match_id)
-        self.series_id = int(series_id)
-        self.json = self._get_json()
+        given_series = int(series_id) if series_id is not None else None
+        self.json = self._get_json(given_series)
         data = self.json
         match = data["match"]
         series = data["series"][-1]
 
-        self.series_id = int(series["core_recreation_id"])
+        page_series = series.get("core_recreation_id")
+        if page_series:
+            self.series_id = int(page_series)
+        elif given_series is not None:
+            self.series_id = given_series
+        else:
+            raise MatchNotFoundError(f"No series found for match {self.match_id}")
         self.description = data["description"]
         self.match_title = match["cms_match_title"]
         self.match_class = (
@@ -506,13 +519,18 @@ class Match:
         """Return ``Match(match_id, series_id)``."""
         return f"{self.__class__.__name__}({self.match_id!r}, {self.series_id!r})"
 
-    def _get_json(self) -> dict[str, Any]:
+    def _get_json(self, series_id: int | None) -> dict[str, Any]:
         """Fetch the match page and reshape its __NEXT_DATA__ blob."""
-        url = (
-            f"https://www.espncricinfo.com/series/"
-            f"x-{self.series_id}/x-{self.match_id}/full-scorecard"
-        )
-        return _normalize(_playwright_fetch(url), self.match_id, self.series_id)
+        if series_id is None:
+            # ESPNcricinfo redirects its legacy match URL to the full match
+            # page, whatever series the match belongs to.
+            url = f"https://www.espncricinfo.com/matches/engine/match/{self.match_id}.html"
+        else:
+            url = (
+                f"https://www.espncricinfo.com/series/"
+                f"x-{series_id}/x-{self.match_id}/full-scorecard"
+            )
+        return _normalize(_playwright_fetch(url), self.match_id, series_id)
 
     def _first_innings_of(self, team_id: str) -> dict[str, Any] | None:
         return next(

@@ -12,7 +12,7 @@ A Python client for ESPNcricinfo match, series, season, team and player data.
 
 ## Description
 
-Match pages are loaded with Playwright (WebKit), because ESPN's CDN refuses plain HTTP clients; player, series, season and team records come from ESPN's core JSON API. A `Match` needs both a `match_id` and a `series_id`, which `Match.get_recent_matches()` and `Series(...).matches` provide.
+Match pages are loaded with Playwright (WebKit), because ESPN's CDN refuses plain HTTP clients; player, series, season and team records come from ESPN's core JSON API. A `Match` needs only a `match_id`; `Match.get_recent_matches()` and `Series(...).matches` list them.
 
 Disclaimer: This library is not intended for commercial use and neither it nor its creator has any affiliation with ESPNCricInfo. The [LICENSE](https://github.com/outside-edge/python-espncricinfo/blob/master/LICENSE.txt) for this library applies only to the code, not to the data.
 
@@ -54,10 +54,10 @@ MatchRef(series_id=1523975, match_id=1523981)
 
 ## A single match
 
-A match needs both its match ID and series ID: the two numbers in a match page URL, or a `MatchRef`. Loading a match starts a headless WebKit browser.
+A match needs only its match ID, the number in a match page URL. Passing the series ID too (`Match(1478914, 1478874)`, or `MatchRef.to_match()`) skips a redirect. Loading a match starts a headless WebKit browser.
 
 ```python
->>> m = Match(1478914, 1478874)  # same as MatchRef(1478874, 1478914).to_match()
+>>> m = Match(1478914)
 >>> m.description
 'IND Women v AUS Women'
 >>> m.match_class
