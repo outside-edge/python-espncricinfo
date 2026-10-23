@@ -6,6 +6,7 @@ import re
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date as _date
 from datetime import datetime as _datetime
+from functools import cached_property
 from typing import Any, TypedDict
 
 from bs4 import BeautifulSoup
@@ -13,6 +14,7 @@ from playwright.async_api import async_playwright
 
 from espncricinfo import _core
 from espncricinfo.exceptions import MatchNotFoundError, NoScorecardError
+from espncricinfo.grounds import Ground
 from espncricinfo.match_ref import MatchRef
 
 
@@ -705,6 +707,11 @@ class Match:
             else:
                 result.append([])
         return result
+
+    @cached_property
+    def ground(self) -> Ground:
+        """The match's ground, loaded on first access (one request)."""
+        return Ground(self.ground_id)
 
     @property
     def over_by_over(self) -> list[list[OverEntry]]:

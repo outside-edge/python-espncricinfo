@@ -82,6 +82,8 @@ To work through every match of a format, list a year's match IDs from Statsguru 
 
 `batting_scorecard` and `bowling_scorecard` hold one list per innings and one dict per player. `over_by_over` gives runs and wickets for every over, and each `m.innings` entry has `fours` and `sixes`.
 
+`m.ground` loads the ground record (`Ground` in `espncricinfo.grounds`): name, city, country, capacity.
+
 ## Players
 
 The player ID is the number at the end of a player's profile URL.

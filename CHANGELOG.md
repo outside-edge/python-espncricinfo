@@ -10,6 +10,8 @@
 
 ### Added
 
+- `Ground` (city, country, capacity, indoor) from ESPN's venue records, and
+  `Match.ground` to load a match's ground (#8).
 - `Match.get_match_ids(year, match_format)`: every international match id of
   one format in a year, from Statsguru, back to 1877. With `Match(match_id)`
   this loads every scorecard of a format (#34).
