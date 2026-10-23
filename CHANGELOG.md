@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-23
+
 ### Fixed
 
 - Match pages and `Summary()` load inside Jupyter and other code that already
@@ -10,8 +12,19 @@
 
 ### Added
 
+- `Ground` (city, country, capacity, indoor) from ESPN's venue records, and
+  `Match.ground` to load a match's ground (#8).
+- `Match.get_match_ids(year, match_format)`: every international match id of
+  one format in a year, from Statsguru, back to 1877. With `Match(match_id)`
+  this loads every scorecard of a format (#34).
+- `Match.get_matches_on(date)`: the matches being played on one day, Tests
+  included on each of their days (#28).
 - `Match(match_id)` works without a series ID: the match page is found from
   the match ID and `series_id` is read from it (#50).
+- Each `Match.innings` entry has `fours` and `sixes`: ESPN's innings total,
+  else the sum over batters who batted, else None (#54).
+- `Match.over_by_over`: runs and wickets per over for each innings, typed as
+  `OverEntry` rows; empty where ESPN has no over data (#42).
 - `Series.season(key)` finds a season by year or by ESPNcricinfo's two-year
   label (`"2024/25"`), and `Season.label` gives that label. Multi-year seasons
   live under their own series ID, now reachable as `season.series_id` (#76).

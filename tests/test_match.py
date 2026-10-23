@@ -468,3 +468,112 @@ def test_live_match_from_id_alone():
     match = Match(729303)
     assert match.series_id == 695871
     assert match.batting_scorecard[0]
+
+
+def test_innings_fours_and_sixes_match_espn_totals():
+    match = _make_match()
+    first = match.innings[0]
+    assert (first["fours"], first["sixes"]) == (15, 4)
+    for inn in match.innings:
+        batters = inn["inningBatsmen"]
+        assert inn["fours"] == sum(b["fours"] or 0 for b in batters)
+        assert inn["sixes"] == sum(b["sixes"] or 0 for b in batters)
+
+
+def test_boundary_count_falls_back_to_batters_then_none():
+    from espncricinfo.match import _boundary_count
+
+    assert _boundary_count({"fours": 9, "inningBatsmen": []}, "fours") == 9
+    batted = {"battedType": "yes"}
+    batters = [{**batted, "fours": 2}, {**batted, "fours": 5}]
+    did_not_bat = {"battedType": "DNB", "fours": None}
+    assert _boundary_count({"inningBatsmen": [*batters, did_not_bat]}, "fours") == 7
+    assert (
+        _boundary_count({"inningBatsmen": [{**batted, "fours": None}]}, "fours") is None
+    )
+    assert _boundary_count({"inningBatsmen": []}, "fours") is None
+
+
+def test_over_by_over_adds_up_to_innings_totals():
+    match = _make_match()
+    assert [len(overs) for overs in match.over_by_over] == [20, 20]
+    for overs, inn in zip(match.over_by_over, match.innings, strict=True):
+        assert sum(o["runs"] for o in overs) == inn["runs"]
+        assert sum(o["wickets"] for o in overs) == inn["wickets"]
+        assert overs[-1]["total_runs"] == inn["runs"]
+        assert [o["over"] for o in overs] == list(range(1, 21))
+
+
+@pytest.mark.integration
+def test_live_old_test_has_no_over_data_and_no_invented_boundaries():
+    match = Match(63963, 61791)
+    assert all(overs == [] for overs in match.over_by_over)
+    assert all(inn["fours"] is None or inn["fours"] >= 0 for inn in match.innings)
+
+
+def _results_page_with(*matches):
+    items = [
+        {
+            "objectId": mid,
+            "series": {"objectId": 1},
+            "startDate": f"{start}T00:00:00.000Z",
+            "endDate": f"{end}T00:00:00.000Z",
+        }
+        for mid, start, end in matches
+    ]
+    return {
+        "props": {"appPageProps": {"data": {"data": {"content": {"matches": items}}}}}
+    }
+
+
+def test_get_matches_on_keeps_matches_spanning_the_day():
+    page = _results_page_with(
+        (10, "2026-10-20", "2026-10-20"),  # one-day match on the day
+        (11, "2026-10-19", "2026-10-22"),  # Test in progress
+        (12, "2026-10-19", "2026-10-19"),  # finished the day before
+        (13, "2026-10-21", "2026-10-21"),  # next day
+    )
+    with patch("espncricinfo.match._playwright_fetch", return_value=page) as fetch:
+        refs = Match.get_matches_on("2026-10-20")
+    assert [r.match_id for r in refs] == [10, 11]
+    assert fetch.call_args.args[0].endswith("?date=20-10-2026")
+
+
+def test_get_recent_matches_still_returns_every_listed_match():
+    page = _results_page_with(
+        (10, "2026-10-20", "2026-10-20"), (12, "2026-10-19", "2026-10-19")
+    )
+    with patch("espncricinfo.match._playwright_fetch", return_value=page):
+        assert [r.match_id for r in Match.get_recent_matches("2026-10-20")] == [10, 12]
+
+
+@pytest.mark.integration
+def test_live_matches_on_a_day_are_a_subset_of_recent_matches():
+    on_day = Match.get_matches_on("2026-10-20")
+    recent = Match.get_recent_matches("2026-10-20")
+    assert on_day
+    assert set(on_day) < set(recent)
+
+
+def test_get_match_ids_reads_statsguru_rows_in_order_without_duplicates():
+    from unittest.mock import MagicMock
+
+    html = """<table class="engineTable">
+      <tr class="data1"><td><a href="/ci/content/ground/58899.html">Karachi</a></td>
+        <td><a href="/ci/engine/match/1322355.html">Test # 2487</a></td></tr>
+      <tr class="data1"><td><a href="/ci/engine/match/1322356.html">Test # 2488</a></td>
+        <td><a href="/ci/engine/match/1322356.html">again</a></td></tr>
+    </table>"""
+    response = MagicMock(text=html)
+    with patch("espncricinfo._core.http_get", return_value=response) as get:
+        assert Match.get_match_ids(2023, 1) == [1322355, 1322356]
+    assert "class=1;id=2023;type=year" in get.call_args.args[0]
+
+
+@pytest.mark.integration
+def test_live_2023_test_ids_load_as_2023_tests():
+    ids = Match.get_match_ids(2023, 1)
+    assert len(ids) == 34
+    first = Match(ids[0])
+    assert first.match_class == "Test"
+    assert first.date.startswith("2023")

@@ -24,6 +24,11 @@ their keys and value types.
    :undoc-members:
    :member-order: bysource
 
+.. autoclass:: espncricinfo.match.OverEntry
+   :members:
+   :undoc-members:
+   :member-order: bysource
+
 .. autoclass:: espncricinfo.match.BowlingEntry
    :members:
    :undoc-members:

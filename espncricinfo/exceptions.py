@@ -23,3 +23,7 @@ class NoSeasonError(TypeError):
 
 class NoTeamError(TypeError):
     """Exception raised if a team does not exist in a series."""
+
+
+class NoGroundError(TypeError):
+    """Raised when a ground does not exist."""

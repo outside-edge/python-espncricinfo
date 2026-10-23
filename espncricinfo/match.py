@@ -2,14 +2,19 @@
 
 import asyncio
 import json
+import re
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date as _date
 from datetime import datetime as _datetime
+from functools import cached_property
 from typing import Any, TypedDict
 
+from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
 
+from espncricinfo import _core
 from espncricinfo.exceptions import MatchNotFoundError, NoScorecardError
+from espncricinfo.grounds import Ground
 from espncricinfo.match_ref import MatchRef
 
 
@@ -64,6 +69,24 @@ def _playwright_fetch(url: str) -> dict[str, Any]:
         return asyncio.run(_async_playwright_fetch(url))
     with ThreadPoolExecutor(max_workers=1) as pool:
         return pool.submit(lambda: asyncio.run(_async_playwright_fetch(url))).result()
+
+
+def _boundary_count(inn: dict[str, Any], key: str) -> int | None:
+    """Innings fours or sixes: ESPN's total, else the batters' sum, else None.
+
+    Where ESPN gives both, the total equals the batters' sum; older matches
+    often carry only the batters' figures, and the oldest carry neither.
+    """
+    if inn.get(key) is not None:
+        return inn[key]
+    counts = [
+        bat.get(key)
+        for bat in inn.get("inningBatsmen") or []
+        if bat.get("battedType") == "yes"
+    ]
+    if not counts or any(count is None for count in counts):
+        return None
+    return sum(counts)
 
 
 def _as_float(record: dict[str, Any] | None, key: str) -> float | None:
@@ -176,6 +199,9 @@ def _normalize(next_data, match_id, series_id):
                 "inningBatsmen": inn.get("inningBatsmen", []),
                 "inningBowlers": inn.get("inningBowlers", []),
                 "inningFallOfWickets": inn.get("inningFallOfWickets", []),
+                "inningOvers": inn.get("inningOvers") or [],
+                "fours": _boundary_count(inn, "fours"),
+                "sixes": _boundary_count(inn, "sixes"),
                 "extras": inn.get("extras"),
                 "byes": inn.get("byes"),
                 "legbyes": inn.get("legbyes"),
@@ -314,6 +340,16 @@ class BattingEntry(TypedDict):
     batted: bool
 
 
+class OverEntry(TypedDict):
+    """One over of :attr:`Match.over_by_over`."""
+
+    over: int
+    runs: int
+    wickets: int
+    total_runs: int
+    total_wickets: int
+
+
 class BowlingEntry(TypedDict):
     """One row of :attr:`Match.bowling_scorecard`."""
 
@@ -373,7 +409,8 @@ class Match:
     scheduled_overs: int | None
     #: Innings numbers as strings, ``['1', '2']``.
     innings_list: list[str]
-    #: One dict per innings: team id, runs, wickets, overs and ESPN's raw lists.
+    #: One dict per innings: team id, runs, wickets, overs, ``fours``, ``sixes``
+    #: (None where ESPN has no figures) and ESPN's raw lists.
     innings: list[dict[str, Any]]
     #: ESPN's raw innings records, including partnerships and commentary.
     all_innings: list[dict[str, Any]]
@@ -671,6 +708,36 @@ class Match:
                 result.append([])
         return result
 
+    @cached_property
+    def ground(self) -> Ground:
+        """The match's ground, loaded on first access (one request)."""
+        return Ground(self.ground_id)
+
+    @property
+    def over_by_over(self) -> list[list[OverEntry]]:
+        """Runs and wickets per over: one list per innings, one row per over.
+
+        Empty for an innings ESPN has no over data for, as with early Tests.
+
+        Example::
+
+            for over in m.over_by_over[0]:
+                print(over["over"], over["runs"], over["total_runs"])
+        """
+        return [
+            [
+                OverEntry(
+                    over=o["overNumber"],
+                    runs=o["overRuns"],
+                    wickets=o["overWickets"],
+                    total_runs=o["totalRuns"],
+                    total_wickets=o["totalWickets"],
+                )
+                for o in inn.get("inningOvers") or []
+            ]
+            for inn in self.innings
+        ]
+
     # ------------------------------------------------------------------
     # Static helpers
     # ------------------------------------------------------------------
@@ -679,44 +746,98 @@ class Match:
     def get_recent_matches(date: _date | str | None = None) -> list[MatchRef]:
         """Return MatchRefs for the matches on ESPNcricinfo's results page.
 
-        Fetches https://www.espncricinfo.com/live-cricket-match-results
-        (with ?date=DD-MM-YYYY) and extracts match data from
-        __NEXT_DATA__ at props.appPageProps.data.data.content.matches.
-        ESPN returns roughly the two weeks of matches ending on that date.
+        ESPN returns roughly the two weeks of matches ending on ``date``. Use
+        :meth:`get_matches_on` for the matches played on one day.
 
-        ``date`` may be a ``datetime.date`` or a string in YYYY-MM-DD or
-        DD-MM-YYYY form; it defaults to today. ESPN answers the YYYY-MM-DD
-        form with an error page, so it is converted before the request.
+        Args:
+            date: A ``datetime.date`` or a string in YYYY-MM-DD or DD-MM-YYYY
+                form; defaults to today.
+
+        Returns:
+            The listed matches, most recent first.
         """
-        if date is None:
-            day = _datetime.now().astimezone().date()
-        elif isinstance(date, _date):
-            day = date
-        else:
-            try:
-                day = _date.fromisoformat(date)
-            except ValueError:
-                dd, mm, yyyy = (int(part) for part in date.split("-"))
-                day = _date(yyyy, mm, dd)
-        url = (
-            "https://www.espncricinfo.com/live-cricket-match-results"
-            f"?date={day:%d-%m-%Y}"
+        return [ref for ref, _, _ in _results_page(_as_day(date))]
+
+    @staticmethod
+    def get_matches_on(date: _date | str | None = None) -> list[MatchRef]:
+        """Return MatchRefs for the matches being played on one day.
+
+        A match counts if the day falls between its start and end dates, so a
+        Test appears on each of its days.
+
+        Args:
+            date: A ``datetime.date`` or a string in YYYY-MM-DD or DD-MM-YYYY
+                form; defaults to today.
+
+        Returns:
+            The matches on that day.
+        """
+        day = _as_day(date)
+        return [ref for ref, start, end in _results_page(day) if start <= day <= end]
+
+    @staticmethod
+    def get_match_ids(year: int, match_format: int = 1) -> list[int]:
+        """Return the ids of every international match of one format in a year.
+
+        Reads Statsguru's results table, so it covers matches back to 1877.
+        Pass each id to :class:`Match` to load it; each load starts a browser.
+
+        Args:
+            year: Calendar year, e.g. ``2023``.
+            match_format: Statsguru class: 1 Test, 2 ODI, 3 T20I,
+                8 women's Test, 9 women's ODI, 10 women's T20I.
+
+        Returns:
+            Match ids in the order Statsguru lists them (by date).
+        """
+        response = _core.http_get(
+            "https://stats.espncricinfo.com/ci/engine/records/team/"
+            f"match_results.html?class={match_format};id={year};type=year"
         )
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, "html.parser")
+        ids: list[int] = []
+        for row in soup.select("table.engineTable tr.data1"):
+            for link in row.find_all("a", href=True):
+                found = _MATCH_LINK.search(str(link["href"]))
+                if found and int(found.group(1)) not in ids:
+                    ids.append(int(found.group(1)))
+        return ids
 
-        next_data = _playwright_fetch(url)
+
+_MATCH_LINK = re.compile(r"/ci/engine/match/(\d+)\.html")
+
+
+def _as_day(date: _date | str | None) -> _date:
+    """Parse a date argument; ESPN's results page wants DD-MM-YYYY."""
+    if date is None:
+        return _datetime.now().astimezone().date()
+    if isinstance(date, _date):
+        return date
+    try:
+        return _date.fromisoformat(date)
+    except ValueError:
+        dd, mm, yyyy = (int(part) for part in date.split("-"))
+        return _date(yyyy, mm, dd)
+
+
+def _results_page(day: _date) -> list[tuple[MatchRef, _date, _date]]:
+    """(MatchRef, start date, end date) for each match on the results page."""
+    url = f"https://www.espncricinfo.com/live-cricket-match-results?date={day:%d-%m-%Y}"
+    next_data = _playwright_fetch(url)
+    try:
+        matches = next_data["props"]["appPageProps"]["data"]["data"]["content"][
+            "matches"
+        ]
+    except (KeyError, TypeError):
+        return []
+    results = []
+    for m in matches:
         try:
-            matches = next_data["props"]["appPageProps"]["data"]["data"]["content"][
-                "matches"
-            ]
-        except (KeyError, TypeError):
-            return []
-
-        results = []
-        for m in matches:
-            try:
-                series_id = m["series"]["objectId"]
-                match_id = m["objectId"]
-                results.append(MatchRef(series_id=series_id, match_id=match_id))
-            except (KeyError, TypeError):
-                continue
-        return results
+            ref = MatchRef(series_id=m["series"]["objectId"], match_id=m["objectId"])
+            start = _date.fromisoformat(m["startDate"][:10])
+            end = _date.fromisoformat((m.get("endDate") or m["startDate"])[:10])
+        except (KeyError, TypeError, ValueError):
+            continue
+        results.append((ref, start, end))
+    return results

@@ -18,6 +18,7 @@ types shown here.
    series.Series
    seasons.Season
    teams.Team
+   grounds.Ground
 ```
 
 ```{toctree}
@@ -26,5 +27,6 @@ types shown here.
 matches
 players
 series
+grounds
 exceptions
 ```
