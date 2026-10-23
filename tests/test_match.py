@@ -434,3 +434,19 @@ def test_no_toss_leaves_toss_fields_none():
 
 def test_series_id_is_int():
     assert isinstance(_make_match().series_id, int)
+
+
+def test_fetch_works_inside_a_running_event_loop():
+    """Jupyter runs an event loop; asyncio.run() refuses to nest inside it (#55)."""
+    import asyncio
+
+    import espncricinfo.match as match_module
+
+    async def fake_fetch(url):
+        return {"url": url}
+
+    async def notebook_cell():
+        return match_module._playwright_fetch("https://example.invalid/page")
+
+    with patch.object(match_module, "_async_playwright_fetch", fake_fetch):
+        assert asyncio.run(notebook_cell()) == {"url": "https://example.invalid/page"}

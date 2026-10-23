@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Match pages and `Summary()` load inside Jupyter and other code that already
+  runs an asyncio event loop; they raised `asyncio.run() cannot be called from
+  a running event loop` (#55).
+
 ### Added
 
 - `Series.season(key)` finds a season by year or by ESPNcricinfo's two-year

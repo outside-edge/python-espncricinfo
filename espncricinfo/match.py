@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date as _date
 from datetime import datetime as _datetime
 from typing import Any, TypedDict
@@ -50,9 +51,19 @@ async def _async_playwright_fetch(url):
     return json.loads(m.group(1))
 
 
-def _playwright_fetch(url):
-    """Synchronous wrapper around _async_playwright_fetch."""
-    return asyncio.run(_async_playwright_fetch(url))
+def _playwright_fetch(url: str) -> dict[str, Any]:
+    """Synchronous wrapper around _async_playwright_fetch.
+
+    Jupyter and other async callers already run an event loop on this thread,
+    and asyncio.run() refuses to nest inside one, so the fetch then runs on a
+    worker thread with its own loop.
+    """
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(_async_playwright_fetch(url))
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        return pool.submit(lambda: asyncio.run(_async_playwright_fetch(url))).result()
 
 
 def _as_float(record: dict[str, Any] | None, key: str) -> float | None:
