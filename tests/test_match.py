@@ -450,3 +450,21 @@ def test_fetch_works_inside_a_running_event_loop():
 
     with patch.object(match_module, "_async_playwright_fetch", fake_fetch):
         assert asyncio.run(notebook_cell()) == {"url": "https://example.invalid/page"}
+
+
+def test_match_without_series_id_uses_legacy_url_and_reads_series_from_page():
+    next_data = json.loads((FIXTURE_DIR / "match_1478914_next_data.json").read_text())
+    with patch("espncricinfo.match._playwright_fetch", return_value=next_data) as fetch:
+        match = Match(1478914)
+    fetch.assert_called_once_with(
+        "https://www.espncricinfo.com/matches/engine/match/1478914.html"
+    )
+    assert match.series_id == 1478874
+
+
+@pytest.mark.integration
+def test_live_match_from_id_alone():
+    """#50: match 729303 (IPL 2014) loads without knowing its series."""
+    match = Match(729303)
+    assert match.series_id == 695871
+    assert match.batting_scorecard[0]

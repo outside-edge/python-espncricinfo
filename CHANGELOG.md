@@ -10,6 +10,8 @@
 
 ### Added
 
+- `Match(match_id)` works without a series ID: the match page is found from
+  the match ID and `series_id` is read from it (#50).
 - `Series.season(key)` finds a season by year or by ESPNcricinfo's two-year
   label (`"2024/25"`), and `Season.label` gives that label. Multi-year seasons
   live under their own series ID, now reachable as `season.series_id` (#76).
