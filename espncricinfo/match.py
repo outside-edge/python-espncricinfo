@@ -1,6 +1,7 @@
 import asyncio
 import json
 from datetime import date as _date
+from datetime import datetime as _datetime
 
 from playwright.async_api import async_playwright
 
@@ -808,16 +809,27 @@ class Match(object):
         Return a list of :class:`~espncricinfo.match_ref.MatchRef` objects from the results page.
 
         Fetches https://www.espncricinfo.com/live-cricket-match-results
-        (optionally with ?date=YYYY-MM-DD) and extracts match data from
+        (with ?date=DD-MM-YYYY) and extracts match data from
         __NEXT_DATA__ at props.appPageProps.data.data.content.matches.
+        ESPN returns roughly the two weeks of matches ending on that date.
+
+        ``date`` may be a ``datetime.date`` or a string in YYYY-MM-DD or
+        DD-MM-YYYY form; it defaults to today. ESPN answers the YYYY-MM-DD
+        form with an error page, so it is converted before the request.
         """
-        if date:
-            url = f"https://www.espncricinfo.com/live-cricket-match-results?date={date}"
+        if date is None:
+            day = _date.today()
+        elif isinstance(date, _date):
+            day = date
         else:
-            today = _date.today().isoformat()
-            url = (
-                f"https://www.espncricinfo.com/live-cricket-match-results?date={today}"
-            )
+            try:
+                day = _date.fromisoformat(date)
+            except ValueError:
+                day = _datetime.strptime(date, "%d-%m-%Y").date()
+        url = (
+            "https://www.espncricinfo.com/live-cricket-match-results"
+            f"?date={day:%d-%m-%Y}"
+        )
 
         next_data = _playwright_fetch(url)
         try:
