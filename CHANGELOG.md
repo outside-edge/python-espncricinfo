@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-10-23
+
+### Changed
+
+- Gaurav Sood is listed as an author in the package metadata and citation.
+
 ## [1.0.0] - 2026-10-23
 
 First release since 0.6.1 (2021). The 0.5.x/0.6.x releases call ESPN endpoints

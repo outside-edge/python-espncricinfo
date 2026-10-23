@@ -4,13 +4,16 @@ build-backend = "uv_build"
 
 [project]
 name = "python-espncricinfo"
-version = "1.0.0"
+version = "1.0.1"
 description = "Python client for ESPNcricinfo match, series, season, team and player data"
 readme = "README.md"
 requires-python = ">=3.12"
 license = "MIT"
 license-files = ["LICENSE.txt"]
-authors = [{name = "Derek Willis", email = "dwillis@gmail.com"}]
+authors = [
+    {name = "Derek Willis", email = "dwillis@gmail.com"},
+    {name = "Gaurav Sood", email = "gsood07@gmail.com"},
+]
 keywords = ["espncricinfo", "cricket", "t20", "odi", "test cricket", "scorecard", "sports data"]
 classifiers = [
     "Development Status :: 4 - Beta",
