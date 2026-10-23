@@ -1,3 +1,4 @@
+import datetime
 import json
 import unittest
 from pathlib import Path
@@ -410,3 +411,19 @@ class TestMatchScorecardProperties(unittest.TestCase):
         with patch.object(self.match, "bowlers", side_effect=patched_bowlers):
             sc = self.match.bowling_scorecard
         self.assertEqual(sc[1], [])
+
+
+class TestGetRecentMatchesUrl:
+    @pytest.mark.parametrize(
+        "date_arg", ["2026-10-20", "20-10-2026", datetime.date(2026, 10, 20)]
+    )
+    def test_date_sent_as_dd_mm_yyyy(self, date_arg):
+        with patch("espncricinfo.match._playwright_fetch", return_value={}) as fetch:
+            Match.get_recent_matches(date_arg)
+        fetch.assert_called_once_with(
+            "https://www.espncricinfo.com/live-cricket-match-results?date=20-10-2026"
+        )
+
+    @pytest.mark.integration
+    def test_live_dated_results_are_not_empty(self):
+        assert Match.get_recent_matches("2026-10-20")
