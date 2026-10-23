@@ -214,3 +214,79 @@ def test_live_series_navigation():
     assert len(series.matches) == 8
     assert MatchRef(1478874, 1478918) in series.matches
     assert series.current_matches == []
+
+
+def _bbl_routes():
+    """A league whose seasons span New Year, as the Big Bash League's do."""
+    league = f"{ROOT}/8044"
+    seasons = [
+        (1490534, 2025, "2025-12-14", "2026-01-26"),
+        (1443056, 2024, "2024-12-15", "2025-01-27"),
+    ]
+    routes = {
+        f"{league}/": (
+            200,
+            {
+                "name": "Big Bash League",
+                "shortName": "BBL",
+                "abbreviation": "BBL",
+                "slug": "big-bash-league",
+            },
+        ),
+        f"{league}/seasons": (
+            200,
+            {
+                "items": [
+                    {"$ref": f"{ROOT}/{sid}/seasons/{year}"}
+                    for sid, year, _, _ in seasons
+                ]
+            },
+        ),
+    }
+    for sid, year, start, end in seasons:
+        routes[f"{ROOT}/{sid}/seasons/{year}"] = (
+            200,
+            {
+                "year": year,
+                "name": f"Big Bash League {year}",
+                "startDate": f"{start}T00:00Z",
+                "endDate": f"{end}T23:59Z",
+            },
+        )
+    return routes
+
+
+@pytest.mark.parametrize("key", ["2024/25", "2024-25", "2024/2025", 2024, "2024"])
+def test_series_season_finds_multi_year_season_by_any_label(key):
+    with patch("espncricinfo._core.http_get", side_effect=fake_get(_bbl_routes())):
+        season = Series(8044).season(key)
+    assert (season.series_id, season.year, season.label) == (1443056, 2024, "2024/25")
+
+
+def test_season_label_is_single_year_when_season_does_not_cross_new_year():
+    url = f"{ROOT}/1449924/seasons/2025"
+    routes = {
+        url: (
+            200,
+            {
+                "year": 2025,
+                "startDate": "2025-03-21T00:00Z",
+                "endDate": "2025-06-03T23:59Z",
+            },
+        )
+    }
+    with patch("espncricinfo._core.http_get", side_effect=fake_get(routes)):
+        assert Season(2025, 1449924).label == "2025"
+
+
+@pytest.mark.parametrize("key", ["2019/20", "2024/26", "twenty"])
+def test_series_season_rejects_unknown_or_malformed_labels(key):
+    with patch("espncricinfo._core.http_get", side_effect=fake_get(_bbl_routes())):
+        series = Series(8044)
+        with pytest.raises(NoSeasonError):
+            series.season(key)
+
+
+@pytest.mark.integration
+def test_live_big_bash_2024_25_resolves_to_its_season_series_id():
+    assert Series(8044).season("2024/25").series_id == 1443056

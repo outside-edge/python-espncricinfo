@@ -100,6 +100,15 @@ The player ID is the number at the end of a player's profile URL.
 'Chennai Super Kings'
 ```
 
+Seasons that cross New Year, like the Big Bash League's, each have their own series ID. Look one up by the label ESPNcricinfo shows:
+
+```python
+>>> bbl = Series(8044)
+>>> season = bbl.season("2024/25")  # also 2024, "2024-25" or "2024/2025"
+>>> season.label, season.series_id
+('2024/25', 1443056)
+```
+
 `series.season_objects` lists every season and `season.match_refs` that season's matches. `series.matches` collects MatchRefs across all seasons (1,254 for the IPL), and `series.current_matches` keeps those in progress. `team.players` loads the squad on demand. ESPN's records for some bilateral tours are incomplete, for example listing one team for a two-team series.
 
 <!-- USAGE-END -->

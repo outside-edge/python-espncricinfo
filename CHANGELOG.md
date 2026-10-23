@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Added
+
+- `Series.season(key)` finds a season by year or by ESPNcricinfo's two-year
+  label (`"2024/25"`), and `Season.label` gives that label. Multi-year seasons
+  live under their own series ID, now reachable as `season.series_id` (#76).
+
 ## [1.0.1] - 2026-10-23
 
 ### Changed
