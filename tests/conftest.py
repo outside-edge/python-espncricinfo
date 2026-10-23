@@ -7,13 +7,12 @@ FIXTURE_DIR = Path(__file__).parent / "fixtures"
 
 
 def load_fixture(name):
-    with open(FIXTURE_DIR / name) as f:
+    with (FIXTURE_DIR / name).open() as f:
         return json.load(f)
 
 
 def load_fixture_text(name):
-    with open(FIXTURE_DIR / name) as f:
-        return f.read()
+    return (FIXTURE_DIR / name).read_text()
 
 
 def pytest_addoption(parser):

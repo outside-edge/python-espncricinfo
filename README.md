@@ -1,16 +1,22 @@
 # python-espncricinfo
 
-A Python 3.10+ client for ESPNCricinfo's match, summary and player information.
+[![PyPI](https://img.shields.io/pypi/v/python-espncricinfo)](https://pypi.org/project/python-espncricinfo/)
+[![Downloads](https://static.pepy.tech/badge/python-espncricinfo)](https://pepy.tech/projects/python-espncricinfo)
+[![CI](https://github.com/outside-edge/python-espncricinfo/actions/workflows/ci.yml/badge.svg)](https://github.com/outside-edge/python-espncricinfo/actions/workflows/ci.yml)
+[![Docs](https://github.com/outside-edge/python-espncricinfo/actions/workflows/docs.yml/badge.svg)](https://outside-edge.github.io/python-espncricinfo/)
+[![Python](https://img.shields.io/pypi/pyversions/python-espncricinfo)](https://pypi.org/project/python-espncricinfo/)
 
-### Description
+<!-- SPHINX-START -->
 
-A Python 3.10+ client for ESPNCricinfo match, series and player data. The library uses Playwright (WebKit) to fetch match pages and extract embedded JSON, bypassing Akamai CDN restrictions on the legacy engine API endpoints. Both a `match_id` and `series_id` are required to instantiate a `Match` — both can be obtained from `Match.get_recent_matches()`. See the Usage section for instructions, and see `match.py` for individual functions.
+A Python client for ESPNcricinfo match, series, season, team and player data.
 
-Disclaimer: This library is not intended for commercial use and neither it nor its creator has any affiliation with ESPNCricInfo. The [LICENSE](LICENSE.txt) for this library applies only to the code, not to the data.
+## Description
 
-The current version of this library is 1.0.0. It is very much a work in progress, and bug reports and feature requests are welcomed.
+Match pages are loaded with Playwright (WebKit), because ESPN's CDN refuses plain HTTP clients; player, series, season and team records come from ESPN's core JSON API. A `Match` needs both a `match_id` and a `series_id`, which `Match.get_recent_matches()` and `Series(...).matches` provide.
 
-### Installation
+Disclaimer: This library is not intended for commercial use and neither it nor its creator has any affiliation with ESPNCricInfo. The [LICENSE](https://github.com/outside-edge/python-espncricinfo/blob/master/LICENSE.txt) for this library applies only to the code, not to the data.
+
+## Installation
 
 ```shell
 uv add python-espncricinfo
@@ -28,7 +34,7 @@ After installation, install the Playwright WebKit browser (required for fetching
 uv run playwright install webkit
 ```
 
-### Usage
+## Usage
 
 For a summary of live matches, create an instance of the `Summary` class:
 
@@ -64,7 +70,7 @@ For individual matches, pass in both the match ID and series ID. These can be di
 'IND Women won by 17 runs'
 ```
 
-A full list of methods available to an instance of the `Match` class is in [the code](https://github.com/dwillis/python-espncricinfo/blob/master/espncricinfo/match.py).
+A full list of methods available to an instance of the `Match` class is in [the code](https://github.com/outside-edge/python-espncricinfo/blob/master/espncricinfo/match.py).
 
 For player details, pass in the player ID (found in a player's URL - for example, [Ajinkya Rahane](http://www.espncricinfo.com/west-indies-v-india-2016/content/player/277916.html) is '277916'):
 
@@ -75,7 +81,7 @@ For player details, pass in the player ID (found in a player's URL - for example
 'Ajinkya Rahane'
 ```
 
-A full list of methods available to an instance of the `Player` class is in [the code](https://github.com/dwillis/python-espncricinfo/blob/master/espncricinfo/player.py).
+A full list of methods available to an instance of the `Player` class is in [the code](https://github.com/outside-edge/python-espncricinfo/blob/master/espncricinfo/player.py).
 
 For series (or league) details, pass in the series ID (found in a match URL, for example, [India's 2018 tour of England](http://www.espncricinfo.com/series/18018/game/1119549/england-vs-india-1st-test-ind-in-eng-2018) is '18018'):
 
@@ -101,18 +107,18 @@ for ref in series.matches:
 
 `series.season_objects` lists all seasons. `season.match_refs` lists that season's matches, while `series.current_matches` contains only matches whose ESPN status is in progress. These match lists contain lightweight `MatchRef` objects; loading a full `Match` launches Playwright. `team.players` loads player records on demand.
 
-### Tests
+## Tests
 
 **Unit tests** (no network required — uses recorded fixtures):
 
 ```shell
-uv run pytest tests/ -k "not integration"
+uv run pytest
 ```
 
 **Integration tests** (hits live ESPN Cricinfo via Playwright):
 
 ```shell
-uv run pytest tests/ --live
+uv run pytest --live
 ```
 
 **Refreshing fixtures** (re-records fixtures from live site):
@@ -121,13 +127,8 @@ uv run pytest tests/ --live
 uv run python scripts/refresh_fixtures.py
 ```
 
-Playwright and WebKit must be installed:
+Integration tests and the fixture refresh need the WebKit browser:
 
 ```shell
-uv add --dev playwright
 uv run playwright install webkit
 ```
-
-### Requirements
-
-Dependencies are managed via `pyproject.toml`. See the Installation section above.

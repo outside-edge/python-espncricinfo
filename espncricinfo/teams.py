@@ -1,3 +1,5 @@
+"""Teams within a series from the ESPN core API."""
+
 from datetime import datetime
 
 from espncricinfo._core import collection_refs, get_json, reference_ids
@@ -6,7 +8,15 @@ from espncricinfo.match_ref import MatchRef
 
 
 class Team:
-    def __init__(self, team_id, series_id):
+    """A team as it appears in one series."""
+
+    def __init__(self, team_id: int | str, series_id: int | str) -> None:
+        """Load the team record.
+
+        Args:
+            team_id: ESPNcricinfo team id.
+            series_id: ESPNcricinfo series (league) id.
+        """
         self.id = int(team_id)
         self.series_id = int(series_id)
         self.url = (
@@ -28,9 +38,7 @@ class Team:
         self.is_active = self.json.get("isActive")
         event = self.json.get("event") or {}
         self.match_date = (
-            datetime.fromisoformat(event["date"].replace("Z", "+00:00"))
-            if event.get("date")
-            else None
+            datetime.fromisoformat(event["date"]) if event.get("date") else None
         )
         self.match = (
             MatchRef.from_core_event_url(event["$ref"]) if event.get("$ref") else None
@@ -39,11 +47,13 @@ class Team:
 
     @classmethod
     def from_reference(cls, url):
+        """Build a Team from a core API team URL."""
         series_id, team_id = reference_ids(url, "teams")
         return cls(team_id, series_id)
 
     @property
     def players(self):
+        """Squad as Player objects, loaded on first access (one request each)."""
         if self._players is None:
             from espncricinfo.player import Player
 
@@ -59,4 +69,5 @@ class Team:
         return self._players
 
     def __repr__(self):
+        """Return a constructor-style summary."""
         return f"Team(id={self.id}, series_id={self.series_id}, name={self.name!r})"

@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  schedule:
+    - cron: "17 6 * * 1"  # weekly: surface ecosystem drift on quiet repos
+  # A merge made with GITHUB_TOKEN does not trigger workflows, so an
+  # auto-merged Dependabot PR leaves the default branch at a commit no CI run
+  # ever covered. The auto-merge sweep dispatches this after it lands one.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    uses: gojiplus/py-canon/.github/workflows/reusable-ci.yml@v1
+    with:
+      wheel-import: espncricinfo
+      coverage-floor: 0
+      run-preen: true

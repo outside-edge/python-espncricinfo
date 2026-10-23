@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-"""
-Re-fetch fixture files from the live ESPN Cricinfo site.
+"""Re-fetch fixture files from the live ESPN Cricinfo site.
 
 ESPN's API endpoints (matches/engine, hs-consumer-api) are blocked by Akamai
 for scripted requests. We use Playwright (WebKit) to load match pages and extract
@@ -30,12 +28,15 @@ PLAYER_ID = 253802
 
 
 def save(name, data):
+    """Write ``data`` (str or JSON-able) to the fixtures directory."""
     path = FIXTURES / name
-    with open(path, "w") as f:
+    with path.open("w") as f:
+        # End with a newline so the end-of-file pre-commit hook leaves it alone.
         if isinstance(data, str):
-            f.write(data)
+            f.write(data if data.endswith("\n") else data + "\n")
         else:
             json.dump(data, f, indent=2)
+            f.write("\n")
     print(f"  Saved {path} ({path.stat().st_size:,} bytes)")
 
 
@@ -71,6 +72,7 @@ async def _playwright_fetch_next_data(url):
 
 
 def fetch_match():
+    """Refresh the match fixtures from the live full-scorecard page."""
     url = (
         f"https://www.espncricinfo.com/series/x-{SERIES_ID}/x-{MATCH_ID}/full-scorecard"
     )
@@ -100,6 +102,7 @@ def fetch_match():
 
 
 def fetch_player():
+    """Refresh the player fixture from the core API."""
     import requests
 
     headers = {"user-agent": "Mozilla/5.0"}
@@ -107,7 +110,7 @@ def fetch_player():
     # core.espnuk.org still works
     url = f"http://core.espnuk.org/v2/sports/cricket/athletes/{PLAYER_ID}"
     print(f"  Fetching: {url}")
-    r = requests.get(url, headers=headers)
+    r = requests.get(url, headers=headers, timeout=30)
     r.raise_for_status()
     save(f"player_{PLAYER_ID}.json", r.json())
 

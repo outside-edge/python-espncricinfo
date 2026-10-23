@@ -1,3 +1,5 @@
+"""Seasons of a series from the ESPN core API."""
+
 from datetime import datetime
 
 from espncricinfo._core import collection_refs, get_json, reference_ids
@@ -7,7 +9,15 @@ from espncricinfo.teams import Team
 
 
 class Season:
-    def __init__(self, season_id, series_id):
+    """One season of a series, with its teams and matches."""
+
+    def __init__(self, season_id: int | str, series_id: int | str) -> None:
+        """Load the season record.
+
+        Args:
+            season_id: Season id, usually the year.
+            series_id: ESPNcricinfo series (league) id.
+        """
         self.id = int(season_id)
         self.series_id = int(series_id)
         self.url = (
@@ -26,15 +36,17 @@ class Season:
 
     @staticmethod
     def _parse_date(value):
-        return datetime.fromisoformat(value.replace("Z", "+00:00")) if value else None
+        return datetime.fromisoformat(value) if value else None
 
     @classmethod
     def from_reference(cls, url):
+        """Build a Season from a core API season URL."""
         series_id, season_id = reference_ids(url, "seasons")
         return cls(season_id, series_id)
 
     @property
     def teams(self):
+        """Teams in this season, loaded on first access."""
         if self._teams is None:
             urls = collection_refs(f"{self.url}/teams", NoSeasonError)
             self._teams = [Team.from_reference(url) for url in urls]
@@ -42,6 +54,7 @@ class Season:
 
     @property
     def match_refs(self):
+        """MatchRefs for this season's matches, loaded on first access."""
         if self._match_refs is None:
             urls = collection_refs(f"{self.url}/events", NoSeasonError)
             self._match_refs = [MatchRef.from_core_event_url(url) for url in urls]
@@ -49,6 +62,7 @@ class Season:
 
     @property
     def series(self):
+        """The parent Series, loaded on first access."""
         if self._series is None:
             from espncricinfo.series import Series
 
@@ -56,7 +70,9 @@ class Season:
         return self._series
 
     def __str__(self):
+        """Return the season name, or its year."""
         return self.name or str(self.year)
 
     def __repr__(self):
+        """Return a constructor-style summary."""
         return f"Season(id={self.id}, series_id={self.series_id}, name={self.name!r})"

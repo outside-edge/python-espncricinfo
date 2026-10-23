@@ -1,32 +1,97 @@
 [build-system]
-requires = ["setuptools>=77", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["uv_build>=0.12.5,<0.14"]
+build-backend = "uv_build"
 
 [project]
 name = "python-espncricinfo"
 version = "1.0.0"
-description = "ESPNCricInfo API client"
+description = "Python client for ESPNcricinfo match, series, season, team and player data"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 license = "MIT"
 license-files = ["LICENSE.txt"]
 authors = [{name = "Derek Willis", email = "dwillis@gmail.com"}]
-keywords = ["espncricinfo", "cricket", "t20", "odi"]
-classifiers = ["Development Status :: 4 - Beta", "Programming Language :: Python :: 3"]
+keywords = ["espncricinfo", "cricket", "t20", "odi", "test cricket", "scorecard", "sports data"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
 dependencies = ["requests", "beautifulsoup4", "dateparser", "lxml", "playwright>=1.48.0"]
 
 [project.urls]
+Homepage = "https://github.com/outside-edge/python-espncricinfo"
 Repository = "https://github.com/outside-edge/python-espncricinfo"
+Documentation = "https://outside-edge.github.io/python-espncricinfo/"
+Changelog = "https://github.com/outside-edge/python-espncricinfo/blob/master/CHANGELOG.md"
 Issues = "https://github.com/outside-edge/python-espncricinfo/issues"
 
 [dependency-groups]
-dev = ["pytest>=7", "ruff"]
-
-[tool.setuptools.packages.find]
-include = ["espncricinfo*"]
+dev = ["ruff", {include-group = "test"}, "pyright>=1.1.390", "pre-commit>=4"]
+docs = ["sphinx>=8", "furo", "myst-parser", "sphinx-copybutton", "py-canon @ git+https://github.com/gojiplus/py-canon@v1"]
+test = ["pytest>=8", "pytest-cov>=6"]
 
 [tool.ruff]
-target-version = "py310"
+line-length = 88
+target-version = "py312"
 
 [tool.ruff.lint]
-select = ["E4", "E7", "E9", "F", "I"]
+external = ["DOC"]
+select = ["E", "W", "F", "I", "B", "C4", "UP", "N", "D", "S", "SIM", "T20", "PT", "RUF", "PTH", "RET", "PIE", "FURB", "PERF", "DTZ", "LOG", "G", "TC", "FLY", "RSE", "SLOT", "FA", "A", "EXE", "ICN", "PGH", "PLE", "ARG", "SLF", "E4", "E7", "E9"]
+# D203/D213: the google convention the fleet standard picks. W191/D206/D300:
+# ruff's own docs list these as always incompatible with `ruff format`, which
+# the standard also runs.
+ignore = ["D203", "D213", "W191", "D206", "D300"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "D", "ARG", "SLF"]
+"docs/**" = ["D"]
+# A command-line maintenance script: printing progress is its interface.
+"scripts/**" = ["T201"]
+
+[tool.pyright]
+include = ["espncricinfo"]
+typeCheckingMode = "standard"
+
+[tool.pydoclint]
+style = "google"
+arg-type-hints-in-docstring = false
+check-return-types = false
+check-yield-types = false
+check-class-attributes = false
+allow-init-docstring = true
+exclude = '\.venv|tests|docs'
+
+[tool.codespell]
+builtin = "clear,rare,en-GB_to_en-US"
+# "centre" is a key in ESPN's match JSON, not prose.
+ignore-words-list = "centre"
+# Fixtures are recorded ESPN responses; their spelling is data.
+skip = "./tests/fixtures,./uv.lock,./.venv"
+
+[tool.uv.build-backend]
+module-name = "espncricinfo"
+module-root = ""
+
+[tool.pytest.ini_options]
+minversion = "8"
+testpaths = ["tests"]
+addopts = ["-ra", "--strict-config", "--strict-markers"]
+xfail_strict = true
+log_level = "INFO"
+filterwarnings = ["error"]
+markers = ["integration: requires the live ESPN site (run with --live)"]
+
+[tool.preen]
+src_layout = false

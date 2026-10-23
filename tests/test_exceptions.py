@@ -1,6 +1,8 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from espncricinfo.exceptions import (
     MatchNotFoundError,
     NoScorecardError,
@@ -20,45 +22,51 @@ def _mock_player_response(status_code=200):
 
 class TestExceptionInheritance(unittest.TestCase):
     def test_match_not_found_is_type_error_subclass(self):
-        self.assertTrue(issubclass(MatchNotFoundError, TypeError))
+        assert issubclass(MatchNotFoundError, TypeError)
 
     def test_no_scorecard_is_type_error_subclass(self):
-        self.assertTrue(issubclass(NoScorecardError, TypeError))
+        assert issubclass(NoScorecardError, TypeError)
 
     def test_player_not_found_is_type_error_subclass(self):
-        self.assertTrue(issubclass(PlayerNotFoundError, TypeError))
+        assert issubclass(PlayerNotFoundError, TypeError)
 
 
 class TestMatchExceptions(unittest.TestCase):
     def test_match_not_found(self):
-        with patch(
-            "espncricinfo.match._playwright_fetch",
-            side_effect=MatchNotFoundError("not found"),
+        with (
+            patch(
+                "espncricinfo.match._playwright_fetch",
+                side_effect=MatchNotFoundError("not found"),
+            ),
+            pytest.raises(MatchNotFoundError),
         ):
-            with self.assertRaises(MatchNotFoundError):
-                Match(1, 1)
+            Match(1, 1)
 
     def test_no_scorecard(self):
-        with patch(
-            "espncricinfo.match._playwright_fetch",
-            side_effect=NoScorecardError("no scorecard"),
+        with (
+            patch(
+                "espncricinfo.match._playwright_fetch",
+                side_effect=NoScorecardError("no scorecard"),
+            ),
+            pytest.raises(NoScorecardError),
         ):
-            with self.assertRaises(NoScorecardError):
-                Match(2, 2)
+            Match(2, 2)
 
     def test_match_not_found_is_type_error_subclass(self):
-        self.assertTrue(issubclass(MatchNotFoundError, TypeError))
+        assert issubclass(MatchNotFoundError, TypeError)
 
     def test_no_scorecard_is_type_error_subclass(self):
-        self.assertTrue(issubclass(NoScorecardError, TypeError))
+        assert issubclass(NoScorecardError, TypeError)
 
 
 class TestPlayerExceptions(unittest.TestCase):
     def test_player_not_found(self):
         mock_404 = _mock_player_response(status_code=404)
-        with patch("espncricinfo.player.requests.get", return_value=mock_404):
-            with self.assertRaises(PlayerNotFoundError):
-                Player(999999)
+        with (
+            patch("espncricinfo._core.http_get", return_value=mock_404),
+            pytest.raises(PlayerNotFoundError),
+        ):
+            Player(999999)
 
     def test_player_not_found_is_type_error_subclass(self):
-        self.assertTrue(issubclass(PlayerNotFoundError, TypeError))
+        assert issubclass(PlayerNotFoundError, TypeError)

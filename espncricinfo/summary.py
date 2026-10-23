@@ -1,9 +1,10 @@
+"""Recent-match listing."""
+
 from espncricinfo.match import Match
 
 
 class Summary:
-    """
-    Provides a list of recent matches as :class:`~espncricinfo.match_ref.MatchRef` objects.
+    """Recent matches as :class:`~espncricinfo.match_ref.MatchRef` objects.
 
     Uses Match.get_recent_matches() which scrapes the ESPN Cricinfo
     results page via Playwright. Pass an optional date string (YYYY-MM-DD
@@ -23,4 +24,5 @@ class Summary:
     """
 
     def __init__(self, date=None):
+        """Fetch the results page for ``date`` (default: today)."""
         self.matches = Match.get_recent_matches(date)

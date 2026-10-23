@@ -1,36 +1,20 @@
-#!/usr/bin/env python
-
-"""
-This module contains various exceptions raised by python-espncricinfo.
-"""
+"""Exceptions raised by python-espncricinfo."""
 
 
 class MatchNotFoundError(TypeError):
-    """
-    Exception raised if a match_id is not valid or does not exist.
-    """
-
-    pass
+    """Raised when a match_id is not valid or does not exist."""
 
 
 class PlayerNotFoundError(TypeError):
-    pass
+    """Raised when a player_id is not valid or does not exist."""
 
 
 class NoScorecardError(TypeError):
-    """
-    Exception raised if a match has no scorecard
-    """
-
-    pass
+    """Raised when a match has no scorecard."""
 
 
 class NoSeriesError(TypeError):
-    """
-    Exception raised if a series_id is not valid or does not exist.
-    """
-
-    pass
+    """Raised when a series_id is not valid or does not exist."""
 
 
 class NoSeasonError(TypeError):

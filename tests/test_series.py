@@ -1,6 +1,8 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from espncricinfo.exceptions import NoSeriesError
 from espncricinfo.series import Series
 
@@ -14,12 +16,14 @@ def _mock_response(status_code=200, json_data=None):
 
 class TestSeriesNotFound(unittest.TestCase):
     def test_series_not_found_raises_no_series_error(self):
-        with patch(
-            "espncricinfo.series.requests.get",
-            return_value=_mock_response(status_code=404),
+        with (
+            patch(
+                "espncricinfo._core.http_get",
+                return_value=_mock_response(status_code=404),
+            ),
+            pytest.raises(NoSeriesError),
         ):
-            with self.assertRaises(NoSeriesError):
-                Series(9999999)
+            Series(9999999)
 
 
 def _mock_series_response():
@@ -60,16 +64,15 @@ def _mock_events_response():
 
 class TestSeriesHappyPath(unittest.TestCase):
     def test_series_name_populated(self):
-        def side_effect(url, headers=None):
+        def side_effect(url, headers=None, timeout=None):
             if url.endswith("/seasons"):
                 return _mock_seasons_response()
-            elif url.endswith("/events"):
+            if url.endswith("/events"):
                 return _mock_events_response()
-            else:
-                return _mock_series_response()
+            return _mock_series_response()
 
-        with patch("espncricinfo.series.requests.get", side_effect=side_effect):
+        with patch("espncricinfo._core.http_get", side_effect=side_effect):
             s = Series(1478874)
-            self.assertEqual(s.name, "India Women in Australia")
-            self.assertEqual(s.short_name, "IND-W in AUS")
-            self.assertFalse(s.is_tournament)
+            assert s.name == "India Women in Australia"
+            assert s.short_name == "IND-W in AUS"
+            assert not s.is_tournament

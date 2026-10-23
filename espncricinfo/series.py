@@ -1,26 +1,30 @@
-import requests
+"""Series (ESPN "league") records from the ESPN core API."""
 
+from espncricinfo import _core
 from espncricinfo._core import collection_refs, get_json
 from espncricinfo.exceptions import NoSeriesError
 from espncricinfo.match_ref import MatchRef
 from espncricinfo.seasons import Season
 
 
-class Series(object):
-    def __init__(self, series_id):
+class Series:
+    """A series or league, with its seasons, teams and matches."""
+
+    def __init__(self, series_id: int | str) -> None:
+        """Load the series record and its season and event lists.
+
+        Args:
+            series_id: ESPNcricinfo series (league) id.
+        """
         self.series_id = series_id
-        self.json_url = "http://core.espnuk.org/v2/sports/cricket/leagues/{0}/".format(
-            str(series_id)
+        self.json_url = (
+            f"http://core.espnuk.org/v2/sports/cricket/leagues/{series_id!s}/"
         )
         self.events_url = (
-            "http://core.espnuk.org/v2/sports/cricket/leagues/{0}/events".format(
-                str(series_id)
-            )
+            f"http://core.espnuk.org/v2/sports/cricket/leagues/{series_id!s}/events"
         )
         self.seasons_url = (
-            "http://core.espnuk.org/v2/sports/cricket/leagues/{0}/seasons".format(
-                str(series_id)
-            )
+            f"http://core.espnuk.org/v2/sports/cricket/leagues/{series_id!s}/seasons"
         )
         self.headers = {"user-agent": "Mozilla/5.0"}
         self.json = self.get_json(self.json_url)
@@ -30,6 +34,7 @@ class Series(object):
         self._current_season = None
         self._match_refs = None
         self._current_matches = None
+        self.events_json = []
         if self.json:
             self.name = self.json["name"]
             self.short_name = self.json["shortName"]
@@ -43,24 +48,21 @@ class Series(object):
             self.events = self._build_events()
 
     def get_json(self, url):
-        r = requests.get(url, headers=self.headers)
+        """Return the JSON at ``url``; raise NoSeriesError on 404."""
+        r = _core.http_get(url, headers=self.headers)
         if r.status_code == 404:
             raise NoSeriesError("Series not found")
-        else:
-            return r.json()
+        return r.json()
 
     def __str__(self):
-        return self.name
-
-    def __unicode__(self):
+        """Return the series name."""
         return self.name
 
     def _get_seasons(self):
         season_json = self.get_json(self.seasons_url)
         if season_json:
             return [x["$ref"] for x in season_json["items"]]
-        else:
-            return None
+        return []
 
     def _get_years_from_seasons(self):
         return [x.split("/")[9] for x in self.seasons]
@@ -68,24 +70,22 @@ class Series(object):
     def _get_events(self):
         events_json = self.get_json(self.events_url)
         if events_json:
-            return [x for x in events_json["items"]]
-        else:
-            return None
+            return list(events_json["items"])
+        return []
 
     def _build_events(self):
-        events = []
-        for event in self.events_json:
-            events.append(self.get_json(event["$ref"]))
-        return events
+        return [self.get_json(event["$ref"]) for event in self.events_json]
 
     @property
     def season_objects(self):
+        """All seasons of the series as Season objects."""
         if self._season_objects is None:
             self._season_objects = [Season.from_reference(url) for url in self.seasons]
         return self._season_objects
 
     @property
     def current_season(self):
+        """The season ESPN marks as current, or None."""
         if self._current_season is None:
             reference = (self.json.get("season") or {}).get("$ref")
             self._current_season = (
@@ -95,6 +95,7 @@ class Series(object):
 
     @property
     def matches(self):
+        """MatchRefs for every match across all seasons, without duplicates."""
         if self._match_refs is None:
             if self.seasons:
                 self._match_refs = list(
@@ -112,6 +113,7 @@ class Series(object):
 
     @property
     def current_matches(self):
+        """MatchRefs whose ESPN status is in progress (one request per match)."""
         if self._current_matches is None:
             active = []
             for ref in self.matches:

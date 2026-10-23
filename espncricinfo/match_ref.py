@@ -1,3 +1,5 @@
+"""Lightweight (series_id, match_id) references."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -11,8 +13,7 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class MatchRef:
-    """
-    A lightweight reference to an ESPN Cricinfo match.
+    """A lightweight reference to an ESPN Cricinfo match.
 
     Stores the ``series_id`` and ``match_id`` needed to construct a
     :class:`~espncricinfo.match.Match`. Supports dict and CSV serialization
@@ -33,6 +34,7 @@ class MatchRef:
     match_id: int
 
     def __post_init__(self):
+        """Coerce both ids to int."""
         object.__setattr__(self, "series_id", int(self.series_id))
         object.__setattr__(self, "match_id", int(self.match_id))
 
@@ -46,12 +48,12 @@ class MatchRef:
         return {"series_id": self.series_id, "match_id": self.match_id}
 
     @classmethod
-    def from_dict(cls, d: dict) -> "MatchRef":
+    def from_dict(cls, d: dict) -> MatchRef:
         """Construct from a mapping with ``series_id`` and ``match_id`` keys."""
         return cls(series_id=d["series_id"], match_id=d["match_id"])
 
     @classmethod
-    def from_core_event_url(cls, url: str) -> "MatchRef":
+    def from_core_event_url(cls, url: str) -> MatchRef:
         """Construct from a core ESPN event reference."""
         series_id, match_id = reference_ids(url, "events")
         return cls(series_id=series_id, match_id=match_id)
@@ -61,13 +63,12 @@ class MatchRef:
         return [str(self.series_id), str(self.match_id)]
 
     @classmethod
-    def from_csv_row(cls, row) -> "MatchRef":
+    def from_csv_row(cls, row) -> MatchRef:
         """Construct from a 2-element sequence ``[series_id, match_id]``."""
         return cls(series_id=row[0], match_id=row[1])
 
-    def to_match(self) -> "Match":
-        """
-        Hydrate a full :class:`~espncricinfo.match.Match` object.
+    def to_match(self) -> Match:
+        """Hydrate a full :class:`~espncricinfo.match.Match` object.
 
         Triggers a Playwright fetch — use only when you need full match data.
         """

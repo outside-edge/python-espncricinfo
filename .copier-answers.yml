@@ -1,0 +1,12 @@
+# Managed by copier — records template version for `copier update`. Do not edit.
+_commit: v1.3.0
+_src_path: gh:gojiplus/py-canon
+author_email: dwillis@gmail.com
+author_name: Derek Willis
+coverage_floor: 0
+default_branch: master
+description: ESPNCricInfo API client
+needs_cli: false
+org: outside-edge
+package_name: espncricinfo
+project_name: python-espncricinfo

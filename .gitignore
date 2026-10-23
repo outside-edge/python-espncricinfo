@@ -19,3 +19,5 @@ fixes.py
 .venv/
 .pytest_cache/
 .ruff_cache/
+docs/_build/
+docs/generated/

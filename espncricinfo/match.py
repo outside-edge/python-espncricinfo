@@ -1,3 +1,5 @@
+"""Match data scraped from ESPNcricinfo match pages via Playwright."""
+
 import asyncio
 import json
 from datetime import date as _date
@@ -10,8 +12,8 @@ from espncricinfo.match_ref import MatchRef
 
 
 async def _async_playwright_fetch(url):
-    """
-    Fetch a page via Playwright (WebKit) and return the parsed __NEXT_DATA__ dict.
+    """Fetch a page via Playwright (WebKit) and return the parsed __NEXT_DATA__ dict.
+
     WebKit is used because Akamai does not block it in headless mode.
     Raises MatchNotFoundError on 404.
     """
@@ -52,15 +54,15 @@ def _playwright_fetch(url):
     return asyncio.run(_async_playwright_fetch(url))
 
 
-def _normalise(next_data, match_id, series_id):
-    """
-    Transform the __NEXT_DATA__ dict (at props.appPageProps.data.data) into a
-    dict shaped like the old engine JSON, so that all existing private methods
-    (_description, _match_class, etc.) continue to work unchanged.
+def _normalize(next_data, match_id, series_id):
+    """Reshape a match page's __NEXT_DATA__ into the old engine JSON layout.
+
+    The private accessors (_description, _match_class, ...) were written
+    against that layout, so they keep working unchanged.
     """
     try:
         app_data = next_data["props"]["appPageProps"]["data"]
-        # Live pages return match/content directly; fixtures wrap with an extra "data" key
+        # Live pages return match/content directly; fixtures add a "data" level.
         if "match" in app_data and "content" in app_data:
             data = app_data
         elif "data" in app_data:
@@ -100,7 +102,7 @@ def _normalise(next_data, match_id, series_id):
             "player": players_by_team.get(oid, []),
         }
 
-    teams_normalised = [build_team(t) for t in teams_raw]
+    teams_normalized = [build_team(t) for t in teams_raw]
 
     # ---- home_team_id ----
     home_team_id = None
@@ -132,7 +134,7 @@ def _normalise(next_data, match_id, series_id):
         batting_first_team_id = str(innings_raw[0]["team"]["objectId"])
 
     # ---- innings ----
-    innings_normalised = []
+    innings_normalized = []
     for inn in innings_raw:
         overs = inn.get("overs") or 0
         runs = inn.get("runs") or 0
@@ -140,7 +142,7 @@ def _normalise(next_data, match_id, series_id):
             run_rate = round(runs / overs, 2) if overs > 0 else 0.0
         except (ZeroDivisionError, TypeError):
             run_rate = 0.0
-        innings_normalised.append(
+        innings_normalized.append(
             {
                 "batting_team_id": str(inn["team"]["objectId"]),
                 "runs": runs,
@@ -185,7 +187,7 @@ def _normalise(next_data, match_id, series_id):
     general_class_card = match.get("format", "")
 
     # ---- innings_list for centre ----
-    innings_list = [str(i + 1) for i in range(len(innings_normalised))]
+    innings_list = [str(i + 1) for i in range(len(innings_normalized))]
 
     # ---- description ----
     if teams_raw and len(teams_raw) >= 2:
@@ -193,8 +195,7 @@ def _normalise(next_data, match_id, series_id):
     else:
         description = match.get("title", "")
 
-    # ---- Assemble normalised dict ----
-    normalised = {
+    return {
         "description": description,
         "match": {
             "match_status": match.get("status", "").lower(),
@@ -240,8 +241,8 @@ def _normalise(next_data, match_id, series_id):
         "live": {
             "status": match.get("statusText", ""),
         },
-        "team": teams_normalised,
-        "innings": innings_normalised,
+        "team": teams_normalized,
+        "innings": innings_normalized,
         "official": [],
         "centre": {
             "common": {
@@ -258,18 +259,28 @@ def _normalise(next_data, match_id, series_id):
         "_match_players": match_players,
     }
 
-    return normalised
 
+class Match:
+    """One match, loaded from its ESPNcricinfo full-scorecard page.
 
-class Match(object):
-    def __init__(self, match_id, series_id):
+    Loading launches a headless WebKit browser, because the site's CDN refuses
+    plain HTTP clients. Fields are exposed as attributes (``description``,
+    ``result``, ``team_1``, ...) plus scorecard properties.
+    """
+
+    def __init__(self, match_id: int | str, series_id: int | str) -> None:
+        """Fetch and parse the match.
+
+        Args:
+            match_id: ESPNcricinfo match (event) id.
+            series_id: ESPNcricinfo series (league) id the match belongs to.
+        """
         self.match_id = int(match_id)
         self.series_id = int(series_id)
         self.json = self.get_json()
         self.html = self.get_html()
         self.comms_json = self.get_comms_json()
         if self.json:
-            self.__unicode__ = self._description()
             self.status = self._status()
             self.match_class = self._match_class()
             self.season = self._season()
@@ -326,7 +337,7 @@ class Match(object):
             self.team_2_run_rate = self._team_2_run_rate()
             self.team_2_overs_batted = self._team_2_overs_batted()
             self.team_2_batting_result = self._team_2_batting_result()
-            if not self.status == "dormant":
+            if self.status != "dormant":
                 self.home_team = self._home_team()
                 self.batting_first = self._batting_first()
                 self.match_winner = self._match_winner()
@@ -341,9 +352,11 @@ class Match(object):
                 self.all_innings = self._all_innings()
 
     def __str__(self):
+        """Return the match description."""
         return self.description
 
     def __repr__(self):
+        """Return ``Match(match_id)``."""
         return f"{self.__class__.__name__}({self.match_id!r})"
 
     # ------------------------------------------------------------------
@@ -351,33 +364,35 @@ class Match(object):
     # ------------------------------------------------------------------
 
     def get_json(self):
-        """
-        Fetch the match page via Playwright, extract __NEXT_DATA__, and return
-        a normalised dict shaped like the old engine JSON.
+        """Fetch the match page and return it normalized to the old engine JSON shape.
+
+        Uses Playwright to load the page and reads its __NEXT_DATA__ blob.
         """
         url = (
             f"https://www.espncricinfo.com/series/"
             f"x-{self.series_id}/x-{self.match_id}/full-scorecard"
         )
         next_data = _playwright_fetch(url)
-        return _normalise(next_data, self.match_id, self.series_id)
+        return _normalize(next_data, self.match_id, self.series_id)
 
     def get_html(self):
         """Not used in the new implementation; returns None."""
-        return None
+        return
 
     def get_comms_json(self):
         """Commentary data is now available via self.json['_content']; returns None."""
-        return None
+        return
 
     # ------------------------------------------------------------------
     # Helpers
     # ------------------------------------------------------------------
 
     def match_json(self):
+        """Return the ``match`` section of the normalized JSON."""
         return self.json["match"]
 
     def innings_comms_url(self, innings=1, page=1):
+        """Return the commentary API URL for one innings and page."""
         return (
             f"https://hsapi.espncricinfo.com/v1/pages/match/comments"
             f"?lang=en&leagueId={self.series_id}&eventId={self.match_id}"
@@ -405,8 +420,7 @@ class Match(object):
     def _match_class(self):
         if self.match_json()["international_class_card"] != "":
             return self.match_json()["international_class_card"]
-        else:
-            return self.match_json()["general_class_card"]
+        return self.match_json()["general_class_card"]
 
     def _season(self):
         return self.match_json()["season"]
@@ -486,9 +500,7 @@ class Match(object):
         return self.match_json()["floodlit_name"]
 
     def _followon(self):
-        if self.match_json().get("followon") == "1":
-            return True
-        return False
+        return self.match_json().get("followon") == "1"
 
     def _scheduled_overs(self):
         try:
@@ -540,29 +552,38 @@ class Match(object):
 
     def _team_1_innings(self):
         try:
-            return [
+            return next(
                 inn
                 for inn in self.json["innings"]
                 if inn["batting_team_id"] == self._team_1_id()
-            ][0]
+            )
         except Exception:
             return None
 
     def _team_1_run_rate(self):
+        innings = self._team_1_innings()
+        if innings is None:
+            return None
         try:
-            return float(self._team_1_innings()["run_rate"])
+            return float(innings["run_rate"])
         except Exception:
             return None
 
     def _team_1_overs_batted(self):
+        innings = self._team_1_innings()
+        if innings is None:
+            return None
         try:
-            return float(self._team_1_innings()["overs"])
+            return float(innings["overs"])
         except Exception:
             return None
 
     def _team_1_batting_result(self):
+        innings = self._team_1_innings()
+        if innings is None:
+            return None
         try:
-            return self._team_1_innings()["event_name"]
+            return innings["event_name"]
         except Exception:
             return None
 
@@ -580,29 +601,38 @@ class Match(object):
 
     def _team_2_innings(self):
         try:
-            return [
+            return next(
                 inn
                 for inn in self.json["innings"]
                 if inn["batting_team_id"] == self._team_2_id()
-            ][0]
+            )
         except Exception:
             return None
 
     def _team_2_run_rate(self):
+        innings = self._team_2_innings()
+        if innings is None:
+            return None
         try:
-            return float(self._team_2_innings()["run_rate"])
+            return float(innings["run_rate"])
         except Exception:
             return None
 
     def _team_2_overs_batted(self):
+        innings = self._team_2_innings()
+        if innings is None:
+            return None
         try:
-            return float(self._team_2_innings()["overs"])
+            return float(innings["overs"])
         except Exception:
             return None
 
     def _team_2_batting_result(self):
+        innings = self._team_2_innings()
+        if innings is None:
+            return None
         try:
-            return self._team_2_innings()["event_name"]
+            return innings["event_name"]
         except Exception:
             return None
 
@@ -669,18 +699,21 @@ class Match(object):
             return self.json["innings"]
 
     def batsmen(self, innings):
+        """Return raw batting entries for a 1-based innings, or None."""
         try:
             return self.json["innings"][innings - 1]["inningBatsmen"]
         except Exception:
             return None
 
     def bowlers(self, innings):
+        """Return raw bowling entries for a 1-based innings, or None."""
         try:
             return self.json["innings"][innings - 1]["inningBowlers"]
         except Exception:
             return None
 
     def extras(self, innings):
+        """Return extras (byes, leg byes, wides, no balls) for a 1-based innings."""
         try:
             inn = self.json["innings"][innings - 1]
             return {
@@ -694,6 +727,7 @@ class Match(object):
             return None
 
     def fows(self, innings):
+        """Return fall-of-wicket entries for a 1-based innings, or None."""
         try:
             return self.json["innings"][innings - 1]["inningFallOfWickets"]
         except Exception:
@@ -733,8 +767,7 @@ class Match(object):
 
     @property
     def batting_scorecard(self) -> list[list[dict]]:
-        """
-        Return batting scorecard for all innings as ``list[list[dict]]``.
+        """Return batting scorecard for all innings as ``list[list[dict]]``.
 
         Outer list is indexed by innings order; inner list has one entry
         per batsman. Players who did not bat have ``batted=False`` and
@@ -745,7 +778,7 @@ class Match(object):
             for i, innings in enumerate(m.batting_scorecard, 1):
                 print(f"Innings {i}:")
                 for b in innings:
-                    print(f"  {b['name']}: {b['runs']} ({b['balls']}) - {b['dismissal']}")
+                    print(b["name"], b["runs"], b["balls"], b["dismissal"])
         """
         result = []
         for i in range(1, len(self.innings) + 1):
@@ -777,8 +810,7 @@ class Match(object):
 
     @property
     def bowling_scorecard(self) -> list[list[dict]]:
-        """
-        Return bowling scorecard for all innings as ``list[list[dict]]``.
+        """Return bowling scorecard for all innings as ``list[list[dict]]``.
 
         Outer list is indexed by innings order; inner list has one entry
         per bowler.
@@ -788,7 +820,7 @@ class Match(object):
             for i, innings in enumerate(m.bowling_scorecard, 1):
                 print(f"Innings {i}:")
                 for b in innings:
-                    print(f"  {b['name']}: {b['wickets']}/{b['runs']} ({b['overs']} ov)")
+                    print(b["name"], b["wickets"], b["runs"], b["overs"])
         """
         result = []
         for i in range(1, len(self.innings) + 1):
@@ -805,8 +837,7 @@ class Match(object):
 
     @staticmethod
     def get_recent_matches(date=None) -> list[MatchRef]:
-        """
-        Return a list of :class:`~espncricinfo.match_ref.MatchRef` objects from the results page.
+        """Return MatchRefs for the matches on ESPNcricinfo's results page.
 
         Fetches https://www.espncricinfo.com/live-cricket-match-results
         (with ?date=DD-MM-YYYY) and extracts match data from
@@ -818,14 +849,15 @@ class Match(object):
         form with an error page, so it is converted before the request.
         """
         if date is None:
-            day = _date.today()
+            day = _datetime.now().astimezone().date()
         elif isinstance(date, _date):
             day = date
         else:
             try:
                 day = _date.fromisoformat(date)
             except ValueError:
-                day = _datetime.strptime(date, "%d-%m-%Y").date()
+                dd, mm, yyyy = (int(part) for part in date.split("-"))
+                day = _date(yyyy, mm, dd)
         url = (
             "https://www.espncricinfo.com/live-cricket-match-results"
             f"?date={day:%d-%m-%Y}"

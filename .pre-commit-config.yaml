@@ -1,0 +1,33 @@
+repos:
+  # ruff runs from the project's own environment rather than a separately
+  # pinned rev. The dev group's ruff floats, and CI resolves it from uv.lock,
+  # so an exact `rev:` here is a second version that drifts against it -- and
+  # not always harmlessly: ruff 0.16 formats Python inside Markdown and 0.15
+  # does not, so `pre-commit run --all-files` passed while `ruff format
+  # --check` failed in CI on the same README, across five repos. A hook that
+  # green-lights what CI rejects is worse than no hook.
+  - repo: local
+    hooks:
+      - id: ruff
+        name: ruff check
+        entry: uv run ruff check --fix
+        language: system
+        types_or: [python, pyi]
+        require_serial: true
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format
+        language: system
+        # Not just Python: current ruff formats code blocks inside Markdown,
+        # and CI runs `ruff format --check .` over the whole tree.
+        types_or: [python, pyi, markdown]
+        require_serial: true
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-added-large-files
+      - id: check-merge-conflict
