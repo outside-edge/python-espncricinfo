@@ -70,6 +70,16 @@ A match needs only its match ID, the number in a match page URL. Passing the ser
 ('D Brown', 0)
 ```
 
+To work through every match of a format, list a year's match IDs from Statsguru (1 Test, 2 ODI, 3 T20I, 8/9/10 the women's formats) and load each one. Each load starts a browser, so a year of Tests takes a minute or two:
+
+```python
+>>> ids = Match.get_match_ids(2023, 1)
+>>> len(ids)
+34
+>>> Match(ids[0]).description
+'New Zealand v Pakistan'
+```
+
 `batting_scorecard` and `bowling_scorecard` hold one list per innings and one dict per player. `over_by_over` gives runs and wickets for every over, and each `m.innings` entry has `fours` and `sixes`.
 
 ## Players

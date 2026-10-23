@@ -10,6 +10,9 @@
 
 ### Added
 
+- `Match.get_match_ids(year, match_format)`: every international match id of
+  one format in a year, from Statsguru, back to 1877. With `Match(match_id)`
+  this loads every scorecard of a format (#34).
 - `Match.get_matches_on(date)`: the matches being played on one day, Tests
   included on each of their days (#28).
 - `Match(match_id)` works without a series ID: the match page is found from

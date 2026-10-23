@@ -2,13 +2,16 @@
 
 import asyncio
 import json
+import re
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date as _date
 from datetime import datetime as _datetime
 from typing import Any, TypedDict
 
+from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
 
+from espncricinfo import _core
 from espncricinfo.exceptions import MatchNotFoundError, NoScorecardError
 from espncricinfo.match_ref import MatchRef
 
@@ -764,6 +767,38 @@ class Match:
         """
         day = _as_day(date)
         return [ref for ref, start, end in _results_page(day) if start <= day <= end]
+
+    @staticmethod
+    def get_match_ids(year: int, match_format: int = 1) -> list[int]:
+        """Return the ids of every international match of one format in a year.
+
+        Reads Statsguru's results table, so it covers matches back to 1877.
+        Pass each id to :class:`Match` to load it; each load starts a browser.
+
+        Args:
+            year: Calendar year, e.g. ``2023``.
+            match_format: Statsguru class: 1 Test, 2 ODI, 3 T20I,
+                8 women's Test, 9 women's ODI, 10 women's T20I.
+
+        Returns:
+            Match ids in the order Statsguru lists them (by date).
+        """
+        response = _core.http_get(
+            "https://stats.espncricinfo.com/ci/engine/records/team/"
+            f"match_results.html?class={match_format};id={year};type=year"
+        )
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, "html.parser")
+        ids: list[int] = []
+        for row in soup.select("table.engineTable tr.data1"):
+            for link in row.find_all("a", href=True):
+                found = _MATCH_LINK.search(str(link["href"]))
+                if found and int(found.group(1)) not in ids:
+                    ids.append(int(found.group(1)))
+        return ids
+
+
+_MATCH_LINK = re.compile(r"/ci/engine/match/(\d+)\.html")
 
 
 def _as_day(date: _date | str | None) -> _date:

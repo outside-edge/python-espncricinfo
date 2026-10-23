@@ -553,3 +553,27 @@ def test_live_matches_on_a_day_are_a_subset_of_recent_matches():
     recent = Match.get_recent_matches("2026-10-20")
     assert on_day
     assert set(on_day) < set(recent)
+
+
+def test_get_match_ids_reads_statsguru_rows_in_order_without_duplicates():
+    from unittest.mock import MagicMock
+
+    html = """<table class="engineTable">
+      <tr class="data1"><td><a href="/ci/content/ground/58899.html">Karachi</a></td>
+        <td><a href="/ci/engine/match/1322355.html">Test # 2487</a></td></tr>
+      <tr class="data1"><td><a href="/ci/engine/match/1322356.html">Test # 2488</a></td>
+        <td><a href="/ci/engine/match/1322356.html">again</a></td></tr>
+    </table>"""
+    response = MagicMock(text=html)
+    with patch("espncricinfo._core.http_get", return_value=response) as get:
+        assert Match.get_match_ids(2023, 1) == [1322355, 1322356]
+    assert "class=1;id=2023;type=year" in get.call_args.args[0]
+
+
+@pytest.mark.integration
+def test_live_2023_test_ids_load_as_2023_tests():
+    ids = Match.get_match_ids(2023, 1)
+    assert len(ids) == 34
+    first = Match(ids[0])
+    assert first.match_class == "Test"
+    assert first.date.startswith("2023")
