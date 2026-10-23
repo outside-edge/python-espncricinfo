@@ -3,8 +3,10 @@ message: "If you use this software, please cite it as below."
 authors:
   - family-names: "Willis"
     given-names: "Derek"
+  - family-names: "Sood"
+    given-names: "Gaurav"
 title: "python-espncricinfo: A Python client for ESPNcricinfo match, series and player data"
-version: 1.0.0
+version: 1.0.1
 date-released: 2026-10-23
 url: "https://github.com/outside-edge/python-espncricinfo"
 repository-code: "https://github.com/outside-edge/python-espncricinfo"
