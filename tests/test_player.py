@@ -1,3 +1,4 @@
+import datetime as dt
 import json
 import unittest
 from pathlib import Path
@@ -50,8 +51,8 @@ class TestPlayerAttributes(unittest.TestCase):
     def setUpClass(cls):
         cls.player = _make_player()
 
-    def test_cricinfo_id_is_string(self):
-        assert self.player.cricinfo_id == "253802"
+    def test_player_id_is_int(self):
+        assert self.player.player_id == 253802
 
     def test_name_is_nonempty_string(self):
         assert isinstance(self.player.name, str)
@@ -64,24 +65,18 @@ class TestPlayerAttributes(unittest.TestCase):
         assert isinstance(self.player.full_name, str)
         assert len(self.player.full_name) > 0
 
-    def test_date_of_birth_is_set(self):
-        assert self.player.date_of_birth is not None
-        assert len(str(self.player.date_of_birth)) > 0
+    def test_date_of_birth_is_a_date(self):
+        assert self.player.date_of_birth == dt.date(1988, 11, 5)
 
-    def test_current_age_is_set(self):
-        assert self.player.current_age is not None
+    def test_age(self):
+        assert self.player.age == 37
 
-    def test_playing_role_is_string_or_none(self):
-        role = self.player.playing_role
-        assert role is None or isinstance(role, (str, dict))
+    def test_playing_role(self):
+        assert self.player.playing_role == "Top-order batter"
 
-    def test_batting_style_is_dict_or_none(self):
-        style = self.player.batting_style
-        assert style is None or isinstance(style, dict)
-
-    def test_bowling_style_is_dict_or_none(self):
-        style = self.player.bowling_style
-        assert style is None or isinstance(style, dict)
+    def test_styles_are_descriptions(self):
+        assert self.player.batting_style == "Right-hand bat"
+        assert self.player.bowling_style == "Right-arm medium"
 
     def test_major_teams_is_nonempty_list(self):
         assert isinstance(self.player.major_teams, list)
@@ -155,12 +150,12 @@ class TestPlayerIntegration:
         assert len(player.major_teams) > 0
 
     @pytest.mark.integration
-    def test_live_cricinfo_id(self):
+    def test_live_player_id(self):
         player = Player(253802)
-        assert player.cricinfo_id == "253802"
+        assert player.player_id == 253802
 
 
-def test_get_data_sends_headers_and_writes_rows(tmp_path):
+def test_get_data_requests_stats_page_and_writes_rows(tmp_path):
     player = _make_player()
     # ESPN's stats pages put each cell on its own line; get_data splits on that.
     rows = (
@@ -173,5 +168,8 @@ def test_get_data_sends_headers_and_writes_rows(tmp_path):
         "espncricinfo._core.http_get", return_value=_mock_response(text=page)
     ) as get:
         player.get_data(file_name=str(out))
-    assert get.call_args.kwargs["headers"] == player.headers
+    assert get.call_args.args[0].endswith(
+        f"/player/{player.player_id}.html?class=11;"
+        "template=results;type=allround;view=match"
+    )
     assert out.read_text().splitlines() == [",Runs,Ground", ",61,Manchester"]

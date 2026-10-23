@@ -11,7 +11,7 @@
 :hidden:
 
 usage
-api
+api/index
 development
 changelog
 ```

@@ -54,7 +54,7 @@ class TestMatchAttributes(unittest.TestCase):
         assert self.match.series_name == "India Women in Australia"
 
     def test_series_id(self):
-        assert self.match.series_id == "1478874"
+        assert self.match.series_id == 1478874
 
     # ---- ground / location ----
 
@@ -65,22 +65,13 @@ class TestMatchAttributes(unittest.TestCase):
     def test_ground_name(self):
         assert self.match.ground_name == "Adelaide Oval"
 
-    def test_continent_is_none(self):
-        assert self.match.continent is None
-
     def test_town_name_is_string_or_none(self):
         assert self.match.town_name is None or isinstance(self.match.town_name, str)
 
     # ---- match flags ----
 
-    def test_cancelled_match_is_false(self):
-        assert not self.match.cancelled_match
-
-    def test_followon_is_false(self):
-        assert not self.match.followon
-
-    def test_rain_rule_is_none(self):
-        assert self.match.rain_rule is None
+    def test_not_canceled(self):
+        assert self.match.canceled is False
 
     def test_scheduled_overs(self):
         assert self.match.scheduled_overs == 20
@@ -111,14 +102,11 @@ class TestMatchAttributes(unittest.TestCase):
     def test_toss_winner_is_valid_team_id(self):
         assert self.match.toss_winner in [self.match.team_1_id, self.match.team_2_id]
 
-    def test_toss_decision_is_1_or_2(self):
-        assert self.match.toss_decision in ["1", "2"]
-
     def test_toss_decision_name_is_bat_or_bowl(self):
         assert self.match.toss_decision_name in ["bat", "bowl"]
 
-    def test_toss_winner_team_id_is_string(self):
-        assert isinstance(self.match.toss_winner_team_id, str)
+    def test_toss_winner_is_a_team_id(self):
+        assert self.match.toss_winner in {self.match.team_1_id, self.match.team_2_id}
 
     # ---- result / outcome ----
 
@@ -166,18 +154,10 @@ class TestMatchAttributes(unittest.TestCase):
     def test_espn_api_url_contains_match_id(self):
         assert "1478914" in self.match.espn_api_url
 
-    def test_legacy_scorecard_url(self):
-        url = self.match.legacy_scorecard_url
-        assert url.startswith("http")
-        assert "1478914" in url
-
     def test_details_url_contains_match_id(self):
         assert "1478914" in self.match.details_url
 
     # ---- officials / rosters ----
-
-    def test_officials_is_list(self):
-        assert isinstance(self.match.officials, list)
 
     def test_rosters_is_dict_or_none(self):
         assert self.match.rosters is None or isinstance(self.match.rosters, dict)
@@ -425,3 +405,32 @@ class TestGetRecentMatchesUrl:
     @pytest.mark.integration
     def test_live_dated_results_are_not_empty(self):
         assert Match.get_recent_matches("2026-10-20")
+
+
+def _next_data_with(**match_fields):
+    """The recorded match page with some ``match`` fields overridden."""
+    next_data = json.loads((FIXTURE_DIR / "match_1478914_next_data.json").read_text())
+    app = next_data["props"]["appPageProps"]["data"]
+    data = app if "match" in app else app["data"]
+    data["match"].update(match_fields)
+    return next_data
+
+
+def _match_from(next_data):
+    with patch("espncricinfo.match._playwright_fetch", return_value=next_data):
+        return Match(1478914, 1478874)
+
+
+def test_no_winner_is_none_not_team_2():
+    match = _match_from(_next_data_with(winnerTeamId=None))
+    assert match.match_winner is None
+
+
+def test_no_toss_leaves_toss_fields_none():
+    match = _match_from(_next_data_with(tossWinnerTeamId=None, tossWinnerChoice=None))
+    assert match.toss_winner is None
+    assert match.toss_decision_name is None
+
+
+def test_series_id_is_int():
+    assert isinstance(_make_match().series_id, int)

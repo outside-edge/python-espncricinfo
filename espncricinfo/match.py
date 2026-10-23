@@ -4,6 +4,7 @@ import asyncio
 import json
 from datetime import date as _date
 from datetime import datetime as _datetime
+from typing import Any, TypedDict
 
 from playwright.async_api import async_playwright
 
@@ -54,11 +55,21 @@ def _playwright_fetch(url):
     return asyncio.run(_async_playwright_fetch(url))
 
 
+def _as_float(record: dict[str, Any] | None, key: str) -> float | None:
+    """Return ``record[key]`` as a float, or None if absent or not numeric."""
+    if record is None:
+        return None
+    try:
+        return float(record[key])
+    except (KeyError, TypeError, ValueError):
+        return None
+
+
 def _normalize(next_data, match_id, series_id):
     """Reshape a match page's __NEXT_DATA__ into the old engine JSON layout.
 
-    The private accessors (_description, _match_class, ...) were written
-    against that layout, so they keep working unchanged.
+    Match reads its attributes from this layout. Raw page data is kept under
+    ``_match``, ``_content`` and ``_match_players``.
     """
     try:
         app_data = next_data["props"]["appPageProps"]["data"]
@@ -260,31 +271,147 @@ def _normalize(next_data, match_id, series_id):
     }
 
 
+class MatchTeam(TypedDict):
+    """One side of a match, as held in :attr:`Match.team_1` and ``team_2``."""
+
+    team_id: str
+    team_abbreviation: str
+    team_name: str
+    team_long_name: str
+    player: list[dict[str, Any]]
+
+
+class BattingEntry(TypedDict):
+    """One row of :attr:`Match.batting_scorecard`.
+
+    Numeric fields are ``None`` for players who did not bat.
+    """
+
+    name: str | None
+    full_name: str | None
+    player_id: int | None
+    runs: int | None
+    balls: int | None
+    minutes: int | None
+    fours: int | None
+    sixes: int | None
+    strike_rate: float | None
+    is_out: bool
+    dismissal: str
+    batted: bool
+
+
+class BowlingEntry(TypedDict):
+    """One row of :attr:`Match.bowling_scorecard`."""
+
+    name: str | None
+    full_name: str | None
+    player_id: int | None
+    overs: float | None
+    maidens: int | None
+    runs: int | None
+    wickets: int | None
+    economy: float | None
+    wides: int | None
+    no_balls: int | None
+    dots: int | None
+
+
 class Match:
     """One match, loaded from its ESPNcricinfo full-scorecard page.
 
-    Loading launches a headless WebKit browser, because the site's CDN refuses
-    plain HTTP clients. Fields are exposed as attributes plus the scorecard
-    properties below. Values shown are for ``Match(1478914, 1478874)``.
-
-    Attributes:
-        description: ``'IND Women v AUS Women'``.
-        match_class: Format, e.g. ``'WT20I'``, ``'T20'``, ``'Test'``.
-        status: ESPN match status, e.g. ``'result'``.
-        result: ``'IND Women won by 17 runs'``.
-        date: Start date as ``'YYYY-MM-DD'``.
-        season: ``'2025/26'``.
-        series_name: ``'India Women in Australia'``.
-        ground_name: ``'Adelaide Oval'``.
-        innings_list: Innings numbers as strings, ``['1', '2']``.
-        team_1: Dict with ``team_id``, ``team_abbreviation``, ``team_name``,
-            ``team_long_name`` and ``player``; ``team_2`` likewise.
-        team_1_players: ESPN's raw player records; ``team_2_players`` likewise.
-        toss_winner: Team id of the toss winner, e.g. ``'1812'``.
-        toss_decision_name: ``'bat'`` or ``'bowl'``.
-        match_winner: Abbreviation of the winner, e.g. ``'IND-W'``.
-        batting_first: Abbreviation of the side that batted first.
+    Loading starts a headless WebKit browser, because the site's CDN refuses
+    plain HTTP clients. Example values below are for ``Match(1478914, 1478874)``.
     """
+
+    #: ESPNcricinfo match id.
+    match_id: int
+    #: ESPNcricinfo series id, as ESPN reports it for this match.
+    series_id: int
+    #: ``'IND Women v AUS Women'``.
+    description: str
+    #: Match title within the series, e.g. ``'3rd T20I'``.
+    match_title: str
+    #: Format, e.g. ``'WT20I'``, ``'T20'``, ``'Test'``.
+    match_class: str
+    #: ESPN status, e.g. ``'result'``; ``'dormant'`` for unplayed matches.
+    status: str
+    #: Result line, e.g. ``'IND Women won by 17 runs'``.
+    result: str
+    #: Season label, e.g. ``'2025/26'``.
+    season: str
+    #: ``'India Women in Australia'``.
+    series_name: str | None
+    #: Start date, ``'YYYY-MM-DD'``.
+    date: str
+    #: Start time in UTC, ISO 8601.
+    start_datetime: str
+    #: True if ESPN marks the match as canceled.
+    canceled: bool
+    #: ESPN ground id.
+    ground_id: str
+    #: ``'Adelaide Oval'``.
+    ground_name: str
+    #: Town or city of the ground.
+    town_name: str | None
+    #: Floodlight setting, e.g. ``'night'``.
+    lighting: str
+    #: Scheduled overs per side; None for Tests.
+    scheduled_overs: int | None
+    #: Innings numbers as strings, ``['1', '2']``.
+    innings_list: list[str]
+    #: One dict per innings: team id, runs, wickets, overs and ESPN's raw lists.
+    innings: list[dict[str, Any]]
+    #: ESPN's raw innings records, including partnerships and commentary.
+    all_innings: list[dict[str, Any]]
+    #: ESPN's raw squads (``teamPlayers``), or None.
+    rosters: dict[str, Any] | None
+    #: First-listed side.
+    team_1: MatchTeam
+    #: Second-listed side.
+    team_2: MatchTeam
+    #: ``team_1['team_id']``.
+    team_1_id: str
+    #: ``team_2['team_id']``.
+    team_2_id: str
+    #: ``team_1['team_abbreviation']``, e.g. ``'IND-W'``.
+    team_1_abbreviation: str
+    #: ``team_2['team_abbreviation']``.
+    team_2_abbreviation: str
+    #: ESPN's raw player records for team 1.
+    team_1_players: list[dict[str, Any]]
+    #: ESPN's raw player records for team 2.
+    team_2_players: list[dict[str, Any]]
+    #: Team 1's first innings record, or None if it has not batted.
+    team_1_innings: dict[str, Any] | None
+    #: Team 2's first innings record, or None if it has not batted.
+    team_2_innings: dict[str, Any] | None
+    #: Team 1's runs per over, or None.
+    team_1_run_rate: float | None
+    #: Team 2's runs per over, or None.
+    team_2_run_rate: float | None
+    #: Overs team 1 batted, or None.
+    team_1_overs_batted: float | None
+    #: Overs team 2 batted, or None.
+    team_2_overs_batted: float | None
+    #: Abbreviation of the home side, or None.
+    home_team: str | None
+    #: Abbreviation of the side that batted first, or None.
+    batting_first: str | None
+    #: Abbreviation of the winner; None for no result, a tie or an unplayed match.
+    match_winner: str | None
+    #: Team id of the toss winner, or None.
+    toss_winner: str | None
+    #: ``'bat'`` or ``'bowl'``, or None before the toss.
+    toss_decision_name: str | None
+    #: Core API event URL.
+    event_url: str
+    #: Core API URL for the ball-by-ball details.
+    details_url: str
+    #: ESPN site API summary URL.
+    espn_api_url: str
+    #: The parsed page, reshaped by ``_normalize``. Prefer the attributes.
+    json: dict[str, Any]
 
     def __init__(self, match_id: int | str, series_id: int | str) -> None:
         """Fetch and parse the match.
@@ -295,467 +422,133 @@ class Match:
         """
         self.match_id = int(match_id)
         self.series_id = int(series_id)
-        self.json = self.get_json()
-        self.html = self.get_html()
-        self.comms_json = self.get_comms_json()
-        if self.json:
-            self.status = self._status()
-            self.match_class = self._match_class()
-            self.season = self._season()
-            self.description = self._description()
-            self.legacy_scorecard_url = self._legacy_scorecard_url()
-            self.series = self._series()
-            self.series_name = self._series_name()
-            self.series_id = self._series_id()
-            self.event_url = (
-                "http://core.espnuk.org/v2/sports/cricket/leagues/"
-                f"{self.series_id}/events/{match_id}"
-            )
-            self.details_url = self._details_url()
-            self.officials = self._officials()
-            self.current_summary = self._current_summary()
-            self.present_datetime_local = self._present_datetime_local()
-            self.present_datetime_gmt = self._present_datetime_gmt()
-            self.start_datetime_local = self._start_datetime_local()
-            self.start_datetime_gmt = self._start_datetime_gmt()
-            self.cancelled_match = self._cancelled_match()
-            self.rain_rule = self._rain_rule()
-            self.date = self._date()
-            self.continent = self._continent()
-            self.town_area = self._town_area()
-            self.town_name = self._town_name()
-            self.town_id = self._town_id()
-            self.weather_location_code = self._weather_location_code()
-            self.match_title = self._match_title()
-            self.result = self._result()
-            self.ground_id = self._ground_id()
-            self.ground_name = self._ground_name()
-            self.lighting = self._lighting()
-            self.followon = self._followon()
-            self.scheduled_overs = self._scheduled_overs()
-            self.innings_list = self._innings_list()
-            self.innings = self._innings()
-            self.latest_batting = self._latest_batting()
-            self.latest_bowling = self._latest_bowling()
-            self.latest_innings = self._latest_innings()
-            self.latest_innings_fow = self._latest_innings_fow()
-            self.team_1 = self._team_1()
-            self.team_1_id = self._team_1_id()
-            self.team_1_abbreviation = self._team_1_abbreviation()
-            self.team_1_players = self._team_1_players()
-            self.team_1_innings = self._team_1_innings()
-            self.team_1_run_rate = self._team_1_run_rate()
-            self.team_1_overs_batted = self._team_1_overs_batted()
-            self.team_1_batting_result = self._team_1_batting_result()
-            self.team_2 = self._team_2()
-            self.team_2_id = self._team_2_id()
-            self.team_2_abbreviation = self._team_2_abbreviation()
-            self.team_2_players = self._team_2_players()
-            self.team_2_innings = self._team_2_innings()
-            self.team_2_run_rate = self._team_2_run_rate()
-            self.team_2_overs_batted = self._team_2_overs_batted()
-            self.team_2_batting_result = self._team_2_batting_result()
-            if self.status != "dormant":
-                self.home_team = self._home_team()
-                self.batting_first = self._batting_first()
-                self.match_winner = self._match_winner()
-                self.toss_winner = self._toss_winner()
-                self.toss_decision = self._toss_decision()
-                self.toss_decision_name = self._toss_decision_name()
-                self.toss_choice_team_id = self._toss_choice_team_id()
-                self.toss_winner_team_id = self._toss_winner_team_id()
-                self.espn_api_url = self._espn_api_url()
-                # from comms_json / content
-                self.rosters = self._rosters()
-                self.all_innings = self._all_innings()
+        self.json = self._get_json()
+        data = self.json
+        match = data["match"]
+        series = data["series"][-1]
 
-    def __str__(self):
+        self.series_id = int(series["core_recreation_id"])
+        self.description = data["description"]
+        self.match_title = match["cms_match_title"]
+        self.match_class = (
+            match["international_class_card"] or match["general_class_card"]
+        )
+        self.status = match["match_status"]
+        self.result = data["live"]["status"]
+        self.season = match["season"]
+        self.series_name = series["series_name"] or None
+        self.date = match["start_date_raw"]
+        self.start_datetime = match["start_datetime_gmt"]
+        self.canceled = match["cancelled_match"] != "N"
+        self.ground_id = match["ground_id"]
+        self.ground_name = match["ground_name"]
+        self.town_name = match.get("town_name")
+        self.lighting = match["floodlit_name"]
+        overs = match.get("scheduled_overs")
+        self.scheduled_overs = int(overs) if overs is not None else None
+        self.innings_list = data["centre"]["common"]["innings_list"]
+        self.innings = data["innings"]
+        self.all_innings = data.get("_content", {}).get("innings", self.innings)
+        self.rosters = data.get("_match_players")
+
+        self.team_1, self.team_2 = data["team"][0], data["team"][1]
+        self.team_1_id = self.team_1["team_id"]
+        self.team_2_id = self.team_2["team_id"]
+        self.team_1_abbreviation = self.team_1["team_abbreviation"]
+        self.team_2_abbreviation = self.team_2["team_abbreviation"]
+        self.team_1_players = self.team_1.get("player", [])
+        self.team_2_players = self.team_2.get("player", [])
+        self.team_1_innings = self._first_innings_of(self.team_1_id)
+        self.team_2_innings = self._first_innings_of(self.team_2_id)
+        self.team_1_run_rate = _as_float(self.team_1_innings, "run_rate")
+        self.team_2_run_rate = _as_float(self.team_2_innings, "run_rate")
+        self.team_1_overs_batted = _as_float(self.team_1_innings, "overs")
+        self.team_2_overs_batted = _as_float(self.team_2_innings, "overs")
+
+        self.home_team = self._abbreviation(match.get("home_team_id"))
+        self.batting_first = self._abbreviation(match.get("batting_first_team_id"))
+        self.match_winner = self._abbreviation(match.get("winner_team_id"))
+        toss_winner = match.get("toss_winner_team_id") or None
+        self.toss_winner = toss_winner
+        self.toss_decision_name = (
+            match.get("toss_decision_name") or None if toss_winner else None
+        )
+
+        self.event_url = (
+            "http://core.espnuk.org/v2/sports/cricket/leagues/"
+            f"{self.series_id}/events/{self.match_id}"
+        )
+        self.details_url = (
+            f"{self.event_url}/competitions/{self.match_id}/details"
+            "?page_size=1000&page=1"
+        )
+        self.espn_api_url = (
+            "https://site.api.espn.com/apis/site/v2/sports/cricket/"
+            f"{self.series_id}/summary?event={self.match_id}"
+        )
+
+    def __str__(self) -> str:
         """Return the match description."""
         return self.description
 
-    def __repr__(self):
-        """Return ``Match(match_id)``."""
-        return f"{self.__class__.__name__}({self.match_id!r})"
+    def __repr__(self) -> str:
+        """Return ``Match(match_id, series_id)``."""
+        return f"{self.__class__.__name__}({self.match_id!r}, {self.series_id!r})"
 
-    # ------------------------------------------------------------------
-    # Data fetching
-    # ------------------------------------------------------------------
-
-    def get_json(self):
-        """Fetch the match page and return it normalized to the old engine JSON shape.
-
-        Uses Playwright to load the page and reads its __NEXT_DATA__ blob.
-        """
+    def _get_json(self) -> dict[str, Any]:
+        """Fetch the match page and reshape its __NEXT_DATA__ blob."""
         url = (
             f"https://www.espncricinfo.com/series/"
             f"x-{self.series_id}/x-{self.match_id}/full-scorecard"
         )
-        next_data = _playwright_fetch(url)
-        return _normalize(next_data, self.match_id, self.series_id)
+        return _normalize(_playwright_fetch(url), self.match_id, self.series_id)
 
-    def get_html(self):
-        """Not used in the new implementation; returns None."""
-        return
-
-    def get_comms_json(self):
-        """Commentary data is now available via self.json['_content']; returns None."""
-        return
-
-    # ------------------------------------------------------------------
-    # Helpers
-    # ------------------------------------------------------------------
-
-    def match_json(self):
-        """Return the ``match`` section of the normalized JSON."""
-        return self.json["match"]
-
-    def innings_comms_url(self, innings=1, page=1):
-        """Return the commentary API URL for one innings and page."""
-        return (
-            f"https://hsapi.espncricinfo.com/v1/pages/match/comments"
-            f"?lang=en&leagueId={self.series_id}&eventId={self.match_id}"
-            f"&period={innings}&page={page}&filter=full&liveTest=false"
+    def _first_innings_of(self, team_id: str) -> dict[str, Any] | None:
+        return next(
+            (inn for inn in self.innings if inn["batting_team_id"] == team_id), None
         )
 
-    def _espn_api_url(self):
-        return (
-            f"https://site.api.espn.com/apis/site/v2/sports/cricket/"
-            f"{self.series_id}/summary?event={self.match_id}"
-        )
+    def _abbreviation(self, team_id: str | None) -> str | None:
+        """Map a team id to its abbreviation; None when ESPN gives no team."""
+        teams = {
+            self.team_1_id: self.team_1_abbreviation,
+            self.team_2_id: self.team_2_abbreviation,
+        }
+        return teams.get(team_id or "")
 
-    def _legacy_scorecard_url(self):
-        return "https://static.espncricinfo.com" + self.match_json()["legacy_url"]
-
-    def _details_url(self, page=1, number=1000):
-        return (
-            self.event_url + f"/competitions/{self.match_id}/details"
-            f"?page_size={number}&page={page}"
-        )
-
-    def _status(self):
-        return self.match_json()["match_status"]
-
-    def _match_class(self):
-        if self.match_json()["international_class_card"] != "":
-            return self.match_json()["international_class_card"]
-        return self.match_json()["general_class_card"]
-
-    def _season(self):
-        return self.match_json()["season"]
-
-    def _description(self):
-        return self.json["description"]
-
-    def _series(self):
-        return self.json["series"]
-
-    def _series_name(self):
+    def _innings_field(self, innings: int, field: str) -> Any:
         try:
-            return self.json["series"][-1]["series_name"]
-        except Exception:
+            return self.innings[innings - 1][field]
+        except (IndexError, KeyError):
             return None
 
-    def _series_id(self):
-        return self.json["series"][-1]["core_recreation_id"]
+    def batsmen(self, innings: int) -> list[dict[str, Any]] | None:
+        """ESPN's raw batting records for a 1-based innings, or None."""
+        return self._innings_field(innings, "inningBatsmen")
 
-    def _officials(self):
-        return self.json["official"]
+    def bowlers(self, innings: int) -> list[dict[str, Any]] | None:
+        """ESPN's raw bowling records for a 1-based innings, or None."""
+        return self._innings_field(innings, "inningBowlers")
 
-    def _current_summary(self):
-        return self.match_json().get("current_summary")
+    def fows(self, innings: int) -> list[dict[str, Any]] | None:
+        """ESPN's raw fall-of-wicket records for a 1-based innings, or None."""
+        return self._innings_field(innings, "inningFallOfWickets")
 
-    def _present_datetime_local(self):
-        return self.match_json()["present_datetime_local"]
-
-    def _present_datetime_gmt(self):
-        return self.match_json()["present_datetime_gmt"]
-
-    def _start_datetime_local(self):
-        return self.match_json()["start_datetime_local"]
-
-    def _start_datetime_gmt(self):
-        return self.match_json()["start_datetime_gmt"]
-
-    def _cancelled_match(self):
-        return self.match_json()["cancelled_match"] != "N"
-
-    def _rain_rule(self):
-        if self.match_json().get("rain_rule") == "1":
-            return self.match_json()["rain_rule_name"]
-        return None
-
-    def _date(self):
-        return self.match_json()["start_date_raw"]
-
-    def _continent(self):
-        return self.match_json().get("continent_name")
-
-    def _town_area(self):
-        return self.match_json().get("town_area")
-
-    def _town_name(self):
-        return self.match_json().get("town_name")
-
-    def _town_id(self):
-        return self.match_json().get("town_id")
-
-    def _weather_location_code(self):
-        return self.match_json().get("weather_location_code")
-
-    def _match_title(self):
-        return self.match_json()["cms_match_title"]
-
-    def _result(self):
-        return self.json["live"]["status"]
-
-    def _ground_id(self):
-        return self.match_json()["ground_id"]
-
-    def _ground_name(self):
-        return self.match_json()["ground_name"]
-
-    def _lighting(self):
-        return self.match_json()["floodlit_name"]
-
-    def _followon(self):
-        return self.match_json().get("followon") == "1"
-
-    def _scheduled_overs(self):
-        try:
-            return int(self.match_json()["scheduled_overs"])
-        except Exception:
+    def extras(self, innings: int) -> dict[str, int | None] | None:
+        """Extras for a 1-based innings: total, byes, leg byes, wides, no balls."""
+        if not 1 <= innings <= len(self.innings):
             return None
-
-    def _innings_list(self):
-        try:
-            return self.json["centre"]["common"]["innings_list"]
-        except Exception:
-            return None
-
-    def _innings(self):
-        return self.json["innings"]
-
-    def _latest_batting(self):
-        try:
-            return self.json["centre"]["common"]["batting"]
-        except Exception:
-            return None
-
-    def _latest_bowling(self):
-        try:
-            return self.json["centre"]["common"]["bowling"]
-        except Exception:
-            return None
-
-    def _latest_innings(self):
-        try:
-            return self.json["centre"]["common"]["innings"]
-        except Exception:
-            return None
-
-    def _latest_innings_fow(self):
-        return self.json["centre"].get("fow")
-
-    def _team_1(self):
-        return self.json["team"][0]
-
-    def _team_1_id(self):
-        return self._team_1()["team_id"]
-
-    def _team_1_abbreviation(self):
-        return self._team_1()["team_abbreviation"]
-
-    def _team_1_players(self):
-        return self._team_1().get("player", [])
-
-    def _team_1_innings(self):
-        try:
-            return next(
-                inn
-                for inn in self.json["innings"]
-                if inn["batting_team_id"] == self._team_1_id()
-            )
-        except Exception:
-            return None
-
-    def _team_1_run_rate(self):
-        innings = self._team_1_innings()
-        if innings is None:
-            return None
-        try:
-            return float(innings["run_rate"])
-        except Exception:
-            return None
-
-    def _team_1_overs_batted(self):
-        innings = self._team_1_innings()
-        if innings is None:
-            return None
-        try:
-            return float(innings["overs"])
-        except Exception:
-            return None
-
-    def _team_1_batting_result(self):
-        innings = self._team_1_innings()
-        if innings is None:
-            return None
-        try:
-            return innings["event_name"]
-        except Exception:
-            return None
-
-    def _team_2(self):
-        return self.json["team"][1]
-
-    def _team_2_id(self):
-        return self._team_2()["team_id"]
-
-    def _team_2_abbreviation(self):
-        return self._team_2()["team_abbreviation"]
-
-    def _team_2_players(self):
-        return self._team_2().get("player", [])
-
-    def _team_2_innings(self):
-        try:
-            return next(
-                inn
-                for inn in self.json["innings"]
-                if inn["batting_team_id"] == self._team_2_id()
-            )
-        except Exception:
-            return None
-
-    def _team_2_run_rate(self):
-        innings = self._team_2_innings()
-        if innings is None:
-            return None
-        try:
-            return float(innings["run_rate"])
-        except Exception:
-            return None
-
-    def _team_2_overs_batted(self):
-        innings = self._team_2_innings()
-        if innings is None:
-            return None
-        try:
-            return float(innings["overs"])
-        except Exception:
-            return None
-
-    def _team_2_batting_result(self):
-        innings = self._team_2_innings()
-        if innings is None:
-            return None
-        try:
-            return innings["event_name"]
-        except Exception:
-            return None
-
-    def _home_team(self):
-        if self._team_1_id() == self.match_json()["home_team_id"]:
-            return self._team_1_abbreviation()
-        return self._team_2_abbreviation()
-
-    def _batting_first(self):
-        if self._team_1_id() == self.match_json()["batting_first_team_id"]:
-            return self._team_1_abbreviation()
-        return self._team_2_abbreviation()
-
-    def _match_winner(self):
-        if self._team_1_id() == self.match_json()["winner_team_id"]:
-            return self._team_1_abbreviation()
-        return self._team_2_abbreviation()
-
-    def _toss_winner(self):
-        if self._team_1_id() == self.match_json()["toss_winner_team_id"]:
-            return self._team_1_id()
-        return self._team_2_id()
-
-    def _toss_decision(self):
-        if self.match_json()["toss_decision"] == "" and len(self.innings) > 0:
-            if self.innings[0]["batting_team_id"] == self.toss_winner:
-                decision = "1"
-            else:
-                decision = "2"
-        else:
-            decision = self.match_json()["toss_decision"]
-        return decision
-
-    def _toss_decision_name(self):
-        if self.match_json()["toss_decision_name"] == "" and len(self.innings) > 0:
-            if self.innings[0]["batting_team_id"] == self.toss_winner:
-                decision_name = "bat"
-            else:
-                decision_name = "bowl"
-        else:
-            decision_name = self.match_json()["toss_decision_name"]
-        return decision_name
-
-    def _toss_choice_team_id(self):
-        return self.match_json()["toss_choice_team_id"]
-
-    def _toss_winner_team_id(self):
-        return self.match_json()["toss_winner_team_id"]
-
-    # ------------------------------------------------------------------
-    # Content / scorecard accessors (formerly comms_json methods)
-    # ------------------------------------------------------------------
-
-    def _rosters(self):
-        try:
-            return self.json["_match_players"]
-        except Exception:
-            return None
-
-    def _all_innings(self):
-        try:
-            return self.json["_content"]["innings"]
-        except Exception:
-            return self.json["innings"]
-
-    def batsmen(self, innings):
-        """Return raw batting entries for a 1-based innings, or None."""
-        try:
-            return self.json["innings"][innings - 1]["inningBatsmen"]
-        except Exception:
-            return None
-
-    def bowlers(self, innings):
-        """Return raw bowling entries for a 1-based innings, or None."""
-        try:
-            return self.json["innings"][innings - 1]["inningBowlers"]
-        except Exception:
-            return None
-
-    def extras(self, innings):
-        """Return extras (byes, leg byes, wides, no balls) for a 1-based innings."""
-        try:
-            inn = self.json["innings"][innings - 1]
-            return {
-                "extras": inn.get("extras"),
-                "byes": inn.get("byes"),
-                "legbyes": inn.get("legbyes"),
-                "wides": inn.get("wides"),
-                "noballs": inn.get("noballs"),
-            }
-        except Exception:
-            return None
-
-    def fows(self, innings):
-        """Return fall-of-wicket entries for a 1-based innings, or None."""
-        try:
-            return self.json["innings"][innings - 1]["inningFallOfWickets"]
-        except Exception:
-            return None
+        inn = self.innings[innings - 1]
+        return {
+            key: inn.get(key)
+            for key in ("extras", "byes", "legbyes", "wides", "noballs")
+        }
 
     # ------------------------------------------------------------------
     # Scorecard helpers
     # ------------------------------------------------------------------
 
-    def _batting_entry(self, raw: dict) -> dict:
+    def _batting_entry(self, raw: dict[str, Any]) -> BattingEntry:
         """Transform a raw inningBatsmen dict into a clean flat dict."""
         player = raw.get("player") or {}
         batted = raw.get("battedType") == "yes"
@@ -784,8 +577,8 @@ class Match:
         }
 
     @property
-    def batting_scorecard(self) -> list[list[dict]]:
-        """Return batting scorecard for all innings as ``list[list[dict]]``.
+    def batting_scorecard(self) -> list[list[BattingEntry]]:
+        """Batting scorecard: one list per innings, one row per batter.
 
         Outer list is indexed by innings order; inner list has one entry
         per batsman. Players who did not bat have ``batted=False`` and
@@ -807,7 +600,7 @@ class Match:
                 result.append([])
         return result
 
-    def _bowling_entry(self, raw: dict) -> dict:
+    def _bowling_entry(self, raw: dict[str, Any]) -> BowlingEntry:
         """Transform a raw inningBowlers dict into a clean flat dict."""
         player = raw.get("player") or {}
         economy = raw.get("economy")
@@ -827,8 +620,8 @@ class Match:
         }
 
     @property
-    def bowling_scorecard(self) -> list[list[dict]]:
-        """Return bowling scorecard for all innings as ``list[list[dict]]``.
+    def bowling_scorecard(self) -> list[list[BowlingEntry]]:
+        """Bowling scorecard: one list per innings, one row per bowler.
 
         Outer list is indexed by innings order; inner list has one entry
         per bowler.
@@ -854,7 +647,7 @@ class Match:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def get_recent_matches(date=None) -> list[MatchRef]:
+    def get_recent_matches(date: _date | str | None = None) -> list[MatchRef]:
         """Return MatchRefs for the matches on ESPNcricinfo's results page.
 
         Fetches https://www.espncricinfo.com/live-cricket-match-results

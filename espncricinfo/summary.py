@@ -1,6 +1,9 @@
 """Recent-match listing."""
 
+from datetime import date
+
 from espncricinfo.match import Match
+from espncricinfo.match_ref import MatchRef
 
 
 class Summary:
@@ -23,6 +26,9 @@ class Summary:
             print(series_id, match_id)
     """
 
-    def __init__(self, date=None):
+    #: The listed matches.
+    matches: list[MatchRef]
+
+    def __init__(self, date: date | str | None = None) -> None:
         """Fetch the results page for ``date`` (default: today)."""
         self.matches = Match.get_recent_matches(date)
