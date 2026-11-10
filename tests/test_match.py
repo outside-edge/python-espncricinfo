@@ -494,6 +494,43 @@ def test_boundary_count_falls_back_to_batters_then_none():
     assert _boundary_count({"inningBatsmen": []}, "fours") is None
 
 
+def test_run_rate_counts_a_part_over_in_balls():
+    """ESPN's 19.4 overs is 19 overs and 4 balls, not 19.4 overs."""
+    from espncricinfo.match import _run_rate
+
+    chase = {"runs": 159, "overs": 19.4, "balls": 118, "ballsPerOver": 6}
+    assert _run_rate(chase) == 8.08  # 159 / 19.4 would give 8.2
+    assert _run_rate({"runs": 176, "overs": 20, "balls": 120}) == 8.8
+
+
+def test_run_rate_converts_overs_when_espn_gives_no_ball_count():
+    from espncricinfo.match import _run_rate
+
+    assert _run_rate({"runs": 159, "overs": 19.4}) == 8.08
+    assert _run_rate({"runs": 159, "overs": 19.4, "balls": None}) == 8.08
+    # Eight-ball overs, as in older Tests: 12.4 overs is 100 balls.
+    assert _run_rate({"runs": 100, "overs": 12.4, "ballsPerOver": 8}) == 8.0
+
+
+def test_run_rate_is_zero_before_a_ball_is_bowled():
+    from espncricinfo.match import _run_rate
+
+    assert _run_rate({"runs": 0, "overs": 0, "balls": 0}) == 0.0
+    assert _run_rate({"runs": None, "overs": None}) == 0.0
+    assert _run_rate({}) == 0.0
+
+
+def test_team_run_rate_for_an_innings_that_ends_mid_over():
+    next_data = _next_data_with()
+    app = next_data["props"]["appPageProps"]["data"]
+    data = app if "match" in app else app["data"]
+    data["content"]["innings"][1].update(overs=19.4, balls=118)
+    match = _match_from(next_data)
+    assert match.team_2_overs_batted == 19.4
+    assert match.team_2_run_rate == 8.08
+    assert match.team_1_run_rate == 8.8
+
+
 def test_over_by_over_adds_up_to_innings_totals():
     match = _make_match()
     assert [len(overs) for overs in match.over_by_over] == [20, 20]

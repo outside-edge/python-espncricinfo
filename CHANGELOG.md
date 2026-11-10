@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- `Match.team_1_run_rate`, `Match.team_2_run_rate` and each innings'
+  `run_rate` are right for an innings that ends mid-over. ESPN writes 19.4 for
+  19 overs and 4 balls, and the rate divided runs by that figure, so 159 runs
+  came out at 8.2 an over instead of 8.08. The rate now counts balls, using
+  ESPN's `ballsPerOver` where overs are not six balls.
+
 ## [1.1.0] - 2026-10-23
 
 ### Fixed
