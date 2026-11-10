@@ -89,6 +89,26 @@ def _boundary_count(inn: dict[str, Any], key: str) -> int | None:
     return sum(counts)
 
 
+def _run_rate(inn: dict[str, Any]) -> float:
+    """Runs per over for an innings; 0.0 before a ball is bowled.
+
+    ESPN writes overs in cricket notation, where 19.4 is 19 overs and 4 balls,
+    so dividing runs by it overstates the rate of an innings that ends
+    mid-over. Count balls instead: ESPN's ``balls``, else the overs figure
+    converted with ``ballsPerOver`` (6 unless ESPN says otherwise).
+    """
+    try:
+        runs = inn.get("runs") or 0
+        per_over = inn.get("ballsPerOver") or 6
+        balls = inn.get("balls")
+        if not balls:
+            overs = float(inn.get("overs") or 0)
+            balls = int(overs) * per_over + round(overs % 1 * 10)
+        return round(runs * per_over / balls, 2) if balls > 0 else 0.0
+    except (TypeError, ValueError, ZeroDivisionError):
+        return 0.0
+
+
 def _as_float(record: dict[str, Any] | None, key: str) -> float | None:
     """Return ``record[key]`` as a float, or None if absent or not numeric."""
     if record is None:
@@ -183,10 +203,7 @@ def _normalize(next_data, match_id, series_id):
     for inn in innings_raw:
         overs = inn.get("overs") or 0
         runs = inn.get("runs") or 0
-        try:
-            run_rate = round(runs / overs, 2) if overs > 0 else 0.0
-        except (ZeroDivisionError, TypeError):
-            run_rate = 0.0
+        run_rate = _run_rate(inn)
         innings_normalized.append(
             {
                 "batting_team_id": str(inn["team"]["objectId"]),
