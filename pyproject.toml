@@ -12,7 +12,7 @@ license = "MIT"
 license-files = ["LICENSE.txt"]
 authors = [
     {name = "Derek Willis", email = "dwillis@gmail.com"},
-    {name = "Gaurav Sood", email = "gsood07@gmail.com"},
+    {name = "Gaurav Sood"},
 ]
 keywords = ["espncricinfo", "cricket", "t20", "odi", "test cricket", "scorecard", "sports data"]
 classifiers = [
