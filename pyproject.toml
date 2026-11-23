@@ -7,7 +7,7 @@ name = "python-espncricinfo"
 version = "1.1.0"
 description = "Python client for ESPNcricinfo match, series, season, team and player data"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 license = "MIT"
 license-files = ["LICENSE.txt"]
 authors = [
@@ -22,7 +22,6 @@ classifiers = [
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
     "Topic :: Internet :: WWW/HTTP",
@@ -44,7 +43,7 @@ test = ["pytest>=8", "pytest-cov>=6"]
 
 [tool.ruff]
 line-length = 88
-target-version = "py312"
+target-version = "py313"
 
 [tool.ruff.lint]
 external = ["DOC"]
