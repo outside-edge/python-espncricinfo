@@ -872,11 +872,11 @@ test = [
 
 [package.metadata]
 requires-dist = [
-    { name = "beautifulsoup4" },
-    { name = "dateparser" },
-    { name = "lxml" },
+    { name = "beautifulsoup4", specifier = ">=4.4.0" },
+    { name = "dateparser", specifier = ">=0.1.0" },
+    { name = "lxml", specifier = ">=5.3.0" },
     { name = "playwright", specifier = ">=1.48.0" },
-    { name = "requests" },
+    { name = "requests", specifier = ">=2.0.0" },
 ]
 
 [package.metadata.requires-dev]
